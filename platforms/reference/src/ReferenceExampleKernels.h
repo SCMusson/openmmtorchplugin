@@ -33,6 +33,9 @@
  * -------------------------------------------------------------------------- */
 
 #include "ExampleKernels.h"
+//#include "mykernels.h"
+#include "openmm/reference/ReferencePlatform.h"
+#include "openmm/reference/ReferenceStochasticDynamics.h"
 #include "openmm/Platform.h"
 #include <vector>
 
@@ -72,6 +75,43 @@ private:
     int numBonds;
     std::vector<int> particle1, particle2;
     std::vector<double> length, k;
+};
+
+/**
+ * This kernel is invoked by MyIntegrator to take one time step.
+ */
+class ReferenceIntegrateMyStepKernel : public IntegrateMyStepKernel {
+public:
+    ReferenceIntegrateMyStepKernel(std::string name, const OpenMM::Platform& platform, OpenMM::ReferencePlatform::PlatformData& data) : IntegrateMyStepKernel(name, platform),
+        data(data), dynamics(0) {
+    }
+    ~ReferenceIntegrateMyStepKernel();
+    /**
+     * Initialize the kernel, setting up the particle masses.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the MyIntegrator this kernel will be used for
+     */
+    void initialize(const OpenMM::System& system, const MyIntegrator& integrator);
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
+private:
+    OpenMM::ReferencePlatform::PlatformData& data;
+    OpenMM::ReferenceStochasticDynamics* dynamics;
+    std::vector<double> masses;
+    double prevTemp, prevFriction, prevStepSize;
 };
 
 } // namespace ExamplePlugin

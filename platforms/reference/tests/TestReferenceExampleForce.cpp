@@ -32,7 +32,7 @@
 /**
  * This tests the Reference implementation of ExampleForce.
  */
-
+#include "MyIntegrator.h"
 #include "ExampleForce.h"
 #include "openmm/internal/AssertionUtilities.h"
 #include "openmm/Context.h"
@@ -42,6 +42,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+
 
 using namespace ExamplePlugin;
 using namespace OpenMM;
@@ -67,7 +68,8 @@ void testForce() {
     
     // Compute the forces and energy.
 
-    VerletIntegrator integ(1.0);
+    MyIntegrator integ(0, 0.1, 0.01);
+    //VerletIntegrator integ(1.0);
     Platform& platform = Platform::getPlatformByName("Reference");
     Context context(system, integ, platform);
     context.setPositions(positions);

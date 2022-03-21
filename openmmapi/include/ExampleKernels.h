@@ -33,6 +33,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "ExampleForce.h"
+#include "MyIntegrator.h"
 #include "openmm/KernelImpl.h"
 #include "openmm/Platform.h"
 #include "openmm/System.h"
@@ -73,6 +74,35 @@ public:
      * @param force      the ExampleForce to copy the parameters from
      */
     virtual void copyParametersToContext(OpenMM::ContextImpl& context, const ExampleForce& force) = 0;
+};
+class IntegrateMyStepKernel : public OpenMM::KernelImpl {
+public:
+    static std::string Name() {
+        return "IntegrateMyStep";
+    }
+    IntegrateMyStepKernel(std::string name, const OpenMM::Platform& platform) : OpenMM::KernelImpl(name, platform) {
+    }
+    /**
+     * Initialize the kernel.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the MyIntegrator this kernel will be used for
+     */
+    virtual void initialize(const OpenMM::System& system, const MyIntegrator& integrator) = 0;
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
 };
 
 } // namespace ExamplePlugin

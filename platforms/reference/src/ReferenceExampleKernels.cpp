@@ -34,7 +34,8 @@
 #include "openmm/OpenMMException.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/reference/RealVec.h"
-#include "openmm/reference/ReferencePlatform.h"
+//#include "openmm/reference/ReferencePlatform.h"
+#include "openmm/reference/SimTKOpenMMUtilities.h"
 
 using namespace ExamplePlugin;
 using namespace OpenMM;
@@ -48,6 +49,25 @@ static vector<RealVec>& extractPositions(ContextImpl& context) {
 static vector<RealVec>& extractForces(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *((vector<RealVec>*) data->forces);
+}
+
+static vector<Vec3>& extractVelocities(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->velocities;
+}
+static ReferenceConstraints& extractConstraints(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->constraints;
+}
+static double computeShiftedKineticEnergy(ContextImpl& context, vector<double>& masses, double timeShift) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<Vec3> shiftedVel(numParticles);
+    context.computeShiftedVelocities(timeShift, shiftedVel);
+    double energy = 0.0;
+    for (int i = 0; i < numParticles; ++i)
+        if (masses[i] > 0)
+            energy += masses[i]*(shiftedVel[i].dot(shiftedVel[i]));
+    return 0.5*energy;
 }
 
 void ReferenceCalcExampleForceKernel::initialize(const System& system, const ExampleForce& force) {
@@ -97,3 +117,50 @@ void ReferenceCalcExampleForceKernel::copyParametersToContext(ContextImpl& conte
             throw OpenMMException("updateParametersInContext: A particle index has changed");
     }
 }
+
+ReferenceIntegrateMyStepKernel::~ReferenceIntegrateMyStepKernel() {
+    if (dynamics)
+        delete dynamics;
+}
+
+void ReferenceIntegrateMyStepKernel::initialize(const System& system, const MyIntegrator& integrator) {
+    int numParticles = system.getNumParticles();
+    masses.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        masses[i] = system.getParticleMass(i);
+    SimTKOpenMMUtilities::setRandomNumberSeed((unsigned int) integrator.getRandomNumberSeed());
+}
+
+void ReferenceIntegrateMyStepKernel::execute(ContextImpl& context, const MyIntegrator& integrator) {
+    double temperature = integrator.getTemperature();
+    double friction = integrator.getFriction();
+    double stepSize = integrator.getStepSize();
+    vector<Vec3>& posData = extractPositions(context);
+    vector<Vec3>& velData = extractVelocities(context);
+    vector<Vec3>& forceData = extractForces(context);
+    if (dynamics == 0 || temperature != prevTemp || friction != prevFriction || stepSize != prevStepSize) {
+        // Recreate the computation objects with the new parameters.
+        
+        if (dynamics)
+            delete dynamics;
+        dynamics = new ReferenceStochasticDynamics(
+                context.getSystem().getNumParticles(), 
+                stepSize, 
+                friction, 
+                temperature);
+        dynamics->setReferenceConstraintAlgorithm(&extractConstraints(context));
+        prevTemp = temperature;
+        prevFriction = friction;
+        prevStepSize = stepSize;
+    }
+    dynamics->update(context.getSystem(), posData, velData, forceData, masses, integrator.getConstraintTolerance());
+    data.time += stepSize;
+    data.stepCount++;
+}
+
+double ReferenceIntegrateMyStepKernel::computeKineticEnergy(ContextImpl& context, const MyIntegrator& integrator) {
+    return computeShiftedKineticEnergy(context, masses, 0.5*integrator.getStepSize());
+}
+
+
+

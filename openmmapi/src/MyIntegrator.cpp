@@ -1,12 +1,12 @@
 /* -------------------------------------------------------------------------- *
- *                              OpenMMExample                                   *
+ *                                   OpenMM                                   *
  * -------------------------------------------------------------------------- *
  * This is part of the OpenMM molecular simulation toolkit originating from   *
  * Simbios, the NIH National Center for Physics-Based Simulation of           *
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2014 Stanford University and the Authors.           *
+ * Portions copyright (c) 2008-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -15,6 +15,7 @@
  * to deal in the Software without restriction, including without limitation  *
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,   *
  * and/or sell copies of the Software, and to permit persons to whom the      *
+ *
  * Software is furnished to do so, subject to the following conditions:       *
  *                                                                            *
  * The above copyright notice and this permission notice shall be included in *
@@ -29,38 +30,66 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "ReferenceExampleKernelFactory.h"
-#include "ReferenceExampleKernels.h"
-#include "openmm/reference/ReferencePlatform.h"
-#include "openmm/internal/ContextImpl.h"
+#include "MyIntegrator.h"
+#include "openmm/Context.h"
 #include "openmm/OpenMMException.h"
+#include "openmm/internal/ContextImpl.h"
+#include "ExampleKernels.h"
+#include <string>
 
 using namespace ExamplePlugin;
-using namespace OpenMM;
+using std::string;
+using std::vector;
 
-extern "C" OPENMM_EXPORT void registerPlatforms() {
+MyIntegrator::MyIntegrator(double temperature, double frictionCoeff, double stepSize) {
+    setTemperature(temperature);
+    setFriction(frictionCoeff);
+    setStepSize(stepSize);
+    setConstraintTolerance(1e-5);
+    setRandomNumberSeed(0);
 }
 
-extern "C" OPENMM_EXPORT void registerKernelFactories() {
-    for (int i = 0; i < Platform::getNumPlatforms(); i++) {
-        Platform& platform = Platform::getPlatform(i);
-        if (dynamic_cast<ReferencePlatform*>(&platform) != NULL) {
-            ReferenceExampleKernelFactory* factory = new ReferenceExampleKernelFactory();
-            platform.registerKernelFactory(CalcExampleForceKernel::Name(), factory);
-            platform.registerKernelFactory(IntegrateMyStepKernel::Name(), factory);
-        }
+void MyIntegrator::initialize(OpenMM::ContextImpl& contextRef) {
+    if (owner != NULL && &contextRef.getOwner() != owner)
+        throw OpenMM::OpenMMException("This Integrator is already bound to a context");
+    context = &contextRef;
+    owner = &contextRef.getOwner();
+    kernel = context->getPlatform().createKernel(IntegrateMyStepKernel::Name(), contextRef);
+    kernel.getAs<IntegrateMyStepKernel>().initialize(contextRef.getSystem(), *this);
+}
+
+void MyIntegrator::setTemperature(double temp) {
+    if (temp < 0)
+        throw OpenMM::OpenMMException("Temperature cannot be negative");
+    temperature = temp;
+}
+
+void MyIntegrator::setFriction(double coeff) {
+    if (coeff < 0)
+        throw OpenMM::OpenMMException("Friction cannot be negative");
+    friction = coeff;
+}
+
+void MyIntegrator::cleanup() {
+    kernel = OpenMM::Kernel();
+}
+
+vector<string> MyIntegrator::getKernelNames() {
+    std::vector<std::string> names;
+    names.push_back(IntegrateMyStepKernel::Name());
+    return names;
+}
+
+double MyIntegrator::computeKineticEnergy() {
+    return kernel.getAs<IntegrateMyStepKernel>().computeKineticEnergy(*context, *this);
+}
+
+void MyIntegrator::step(int steps) {
+    if (context == NULL)
+        throw OpenMM::OpenMMException("This Integrator is not bound to a context!");  
+    for (int i = 0; i < steps; ++i) {
+        context->updateContextState();
+        context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+        kernel.getAs<IntegrateMyStepKernel>().execute(*context, *this);
     }
-}
-
-extern "C" OPENMM_EXPORT void registerExampleReferenceKernelFactories() {
-    registerKernelFactories();
-}
-
-KernelImpl* ReferenceExampleKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
-    ReferencePlatform::PlatformData& data = *static_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    if (name == CalcExampleForceKernel::Name())
-        return new ReferenceCalcExampleForceKernel(name, platform);
-    if (name == IntegrateMyStepKernel::Name())
-	return new ReferenceIntegrateMyStepKernel(name, platform, data);
-    throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }
