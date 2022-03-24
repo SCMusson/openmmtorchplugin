@@ -1,3 +1,6 @@
+#ifndef OPENMM_EXAMPLE_FORCE_PROXY_H_
+#define OPENMM_EXAMPLE_FORCE_PROXY_H_
+
 /* -------------------------------------------------------------------------- *
  *                                OpenMMExample                                 *
  * -------------------------------------------------------------------------- *
@@ -29,37 +32,22 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#ifdef WIN32
-#include <windows.h>
-#include <sstream>
-#else
-#include <dlfcn.h>
-#include <dirent.h>
-#include <cstdlib>
-#endif
-
-#include "ExampleForce.h"
-#include "MyIntegrator.h"
-#include "ExampleForceProxy.h"
-#include "MyIntegratorProxy.h"
+#include "internal/windowsExportExample.h"
 #include "openmm/serialization/SerializationProxy.h"
 
-#if defined(WIN32)
-    #include <windows.h>
-    extern "C" OPENMM_EXPORT_EXAMPLE void registerExampleSerializationProxies();
-    BOOL WINAPI DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
-        if (ul_reason_for_call == DLL_PROCESS_ATTACH)
-            registerExampleSerializationProxies();
-        return TRUE;
-    }
-#else
-    extern "C" void __attribute__((constructor)) registerExampleSerializationProxies();
-#endif
+namespace OpenMM {
 
-using namespace ExamplePlugin;
-using namespace OpenMM;
+/**
+ * This is a proxy for serializing ExampleForce objects.
+ */
 
-extern "C" OPENMM_EXPORT_EXAMPLE void registerExampleSerializationProxies() {
-    SerializationProxy::registerProxy(typeid(ExampleForce), new ExampleForceProxy());
-    //SerializationProxy::registerProxy(typeid(MyIntegrator), new MyIntegratorProxy());
-}
+class OPENMM_EXPORT_EXAMPLE MyIntegratorProxy : public SerializationProxy {
+public:
+    MyIntegratorProxy();
+    void serialize(const void* object, SerializationNode& node) const;
+    void* deserialize(const SerializationNode& node) const;
+};
+
+} // namespace OpenMM
+
+#endif /*OPENMM_EXAMPLE_FORCE_PROXY_H_*/

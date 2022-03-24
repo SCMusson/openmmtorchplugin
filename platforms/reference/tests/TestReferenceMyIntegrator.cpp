@@ -38,11 +38,13 @@
 #include "MyIntegrator.h"
 //#include "openmm/LangevinIntegrator.h"
 //#include "openmm/SimTKOpenMMRealType.h"
-//#include "sfmt/SFMT.h"
+#include "openmm/reference/SimTKOpenMMUtilities.h"
+//#include "openmm/library/
+#include "sfmt/SFMT.h"
 #include <iostream>
 #include <vector>
-
-
+#include <torch/torch.h>
+#include <chrono>
 #define KILO    	(1e3)
 #define BOLTZMANN	(1.380649e-23)
 #define AVOGADRO        (6.02214076e23)
@@ -56,9 +58,9 @@ const double TOL = 1e-5;
 
 
 extern "C" OPENMM_EXPORT void registerExampleReferenceKernelFactories();
+Platform& platform = Platform::getPlatformByName("Reference");
 
 void customtest() {
-    Platform& platform = Platform::getPlatformByName("Reference");
     System system;
     system.addParticle(2.0);
     system.addParticle(2.0);
@@ -67,23 +69,52 @@ void customtest() {
     forceField->addBond(0, 1, 1.5, 1);
     system.addForce(forceField);
     Context context(system, integrator, platform);
-    return;
+    auto start = chrono::high_resolution_clock::now();
     vector<Vec3> positions(2);
     positions[0] = Vec3(-1, 0, 0);
     positions[1] = Vec3(1, 0, 0);
     context.setPositions(positions);
+    State state1 = context.getState(State::Positions | State::Velocities | State::Forces);
+    auto stop = chrono::high_resolution_clock::now();
+    torch::Tensor input = torch::randn({2*3});
+    torch::Tensor output;
+    auto start1 = chrono::high_resolution_clock::now();
+    integrator.torchstep(5, input, output);
+    auto stop1 = chrono::high_resolution_clock::now();
+    State state2 = context.getState(State::Positions | State::Velocities | State::Forces);
+    int numParticles = 6;
+    double force1 = 0.0;
+    double force2 = 0.0;
+    double force3 = 0.0;
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            force1 += abs(state1.getForces()[i][j]);
+            force2 += abs(state2.getForces()[i][j]);
+            force3 += *output[i][j].abs().data_ptr<double>();
+            //forcediff = forcediff + abs(state1.getForces()[i][j]-state2.getForces()[i][j]);
+            //cout << forcediff<<endl;
+            //cout << i <<" : " << input[j+3*i] << output[i][j] << state2.getPositions()[i][j]<< "Forces"<<state1.getForces()[i][j]<<state2.getForces()[i][j]<<endl;
+        }
+    }       
+    double forcediff = abs(force1-force2);
+    //cout << force1 << "  "<< force2 << "  "<< force3 <<"  " << forcediff <<endl;
+    bool test = (forcediff>TOL*100); //should be none zero
+    //cout << test <<endl;//forcediff<<endl;
+    ASSERT_EQUAL(test,true); //Low Random chance of it being smaller by accident
+    ASSERT_EQUAL_TOL(force2, force3, 1e-10)
     //ASSERT(false)
-
+    auto duration = chrono::duration_cast<chrono::nanoseconds>(stop-start);
+    auto duration1 = chrono::duration_cast<chrono::nanoseconds>(stop1-start1);
+    //cout<<duration.count() << "  " << duration1.count() << endl;
 }
 
 
 void testSingleBond() {
-    Platform& platform = Platform::getPlatformByName("Reference");
+    //Platform& platform = Platform::getPlatformByName("Reference");
     System system;
     system.addParticle(2.0);
     system.addParticle(2.0);
     MyIntegrator integrator(0, 0.1, 0.01);
-    cout << "nope definitely here" << endl;
     HarmonicBondForce* forceField = new HarmonicBondForce();
     forceField->addBond(0, 1, 1.5, 1);
     system.addForce(forceField);
@@ -121,7 +152,7 @@ void testSingleBond() {
         integrator.step(1);
     }
 }
-/*
+
 
 void testTemperature() {
     const int numParticles = 8;
@@ -156,8 +187,8 @@ void testTemperature() {
     double expected = 0.5*numParticles*3*BOLTZ*temp;
     ASSERT_USUALLY_EQUAL_TOL(expected, ke, 6/std::sqrt(10000.0));
 }
-*/
-/* keep
+
+//start keep
 void testConstraints() {
     const int numParticles = 8;
     const int numConstraints = 5;
@@ -205,8 +236,8 @@ void testConstraints() {
         integrator.step(1);
     }
 }
-keep */
-/*
+//end keep 
+
 
 void testConstrainedMasslessParticles() {
     System system;
@@ -295,8 +326,8 @@ void testRandomSeed() {
         }
     }
 }
-*/
-/* keep
+
+// start keep
 void testInitialTemperature() {
     // Check temperature initialization for a collection of randomly placed particles
     const int numParticles = 50000;
@@ -324,8 +355,8 @@ void testInitialTemperature() {
     double temperature = (2*kineticEnergy / (nDoF*BOLTZ));
     ASSERT_USUALLY_EQUAL_TOL(targetTemperature, temperature, 0.01);
 }
-keep */
-/*
+// end keep 
+
 void testForceGroups() {
     System system;
     system.addParticle(1.0);
@@ -350,19 +381,19 @@ void testForceGroups() {
     ASSERT(pos[1] == 0);
     ASSERT(pos[2] == 0);
 }
-*/
+
 int main() {
     try {
         registerExampleReferenceKernelFactories();
 	customtest();
         //initializeTests();
-        //testSingleBond();
-        //testTemperature();
-        //testConstraints();
-        //testConstrainedMasslessParticles();
-        //testRandomSeed();
-	//testInitialTemperature();
-        //testForceGroups();
+        testSingleBond();
+        testTemperature();
+        testConstraints();
+        testConstrainedMasslessParticles();
+        testRandomSeed();
+	testInitialTemperature();
+        testForceGroups();
         //runPlatformTests();
     }
     catch(const exception& e) {

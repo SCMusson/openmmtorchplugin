@@ -1,4 +1,4 @@
-%module exampleplugin
+%module myexampleplugin
 
 %import(module="simtk.openmm") "swig/OpenMMSwigHeaders.i"
 %include "swig/typemaps.i"
@@ -17,7 +17,6 @@ namespace std {
 
 %{
 #include "ExampleForce.h"
-#include "MyIntegrator.h"
 #include "OpenMM.h"
 #include "OpenMMAmoeba.h"
 #include "OpenMMDrude.h"
@@ -26,8 +25,8 @@ namespace std {
 %}
 
 %pythoncode %{
-import openmm as mm
-import openmm.unit as unit
+import simtk.openmm as mm
+import simtk.unit as unit
 %}
 
 /*
@@ -94,42 +93,4 @@ public:
     }
 };
 
-
-class MyIntegrator : public OpenMM::Integrator {
-public:
-    MyIntegrator(double temperature, double frictionCoeff, double stepSize);
-
-    double getTemperature() const;
-
-    void setTemperature(double temp);
-
-    double getFriction() const;
-
-    void setFriction(double coeff);
-
-    int getRandomNumberSeed() const;
-
-    void setRandomNumberSeed(int seed);
-
-    void step(int steps);
-
-    %apply torch::Tensor& OUTPUT {torch::Tensor& output};
-    void torchstep(int steps, torch::Tensor& input, torch::Tensor& output);
-    %clear torch::Tensor& output;
-/*
-    %extend {
-        static ExamplePlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {
-            return dynamic_cast<ExamplePlugin::MyIntegrator&>(integrator);
-        }
-
-        static bool isinstance(OpenMM::Integrator& integrator){
-            return (dynamic_cast<ExamplePlugin::MyIntegrator*>(&integrator) != NULL);
-        }
-    }
-*/
-};
-
-
-
 }
-

@@ -96,6 +96,8 @@ public:
      * @param integrator the MyIntegrator this kernel is being used for
      */
     virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
+    virtual void executeSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input) = 0;
+    virtual void executeGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& output) = 0;
     /**
      * Compute the kinetic energy.
      * 
@@ -104,6 +106,66 @@ public:
      */
     virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
 };
+class IntegrateTorchSetKernel : public OpenMM::KernelImpl {
+public:
+    static std::string Name() {
+        return "IntegrateTorchSet";
+    }
+    IntegrateTorchSetKernel(std::string name, const OpenMM::Platform& platform) : OpenMM::KernelImpl(name, platform) {
+    }
+    /**
+     * Initialize the kernel.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the MyIntegrator this kernel will be used for
+     */
+    virtual void initialize(const OpenMM::System& system, const MyIntegrator& integrator) = 0;
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input) = 0;
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
+};
+class IntegrateTorchGetKernel : public OpenMM::KernelImpl {
+public:
+    static std::string Name() {
+        return "IntegrateTorchSet";
+    }
+    IntegrateTorchGetKernel(std::string name, const OpenMM::Platform& platform) : OpenMM::KernelImpl(name, platform) {
+    }
+    /**
+     * Initialize the kernel.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the MyIntegrator this kernel will be used for
+     */
+    virtual void initialize(const OpenMM::System& system, const MyIntegrator& integrator) = 0;
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& output) = 0;
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the MyIntegrator this kernel is being used for
+     */
+    virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
+};
+
+
 
 } // namespace ExamplePlugin
 

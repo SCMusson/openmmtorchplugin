@@ -29,37 +29,35 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#ifdef WIN32
-#include <windows.h>
-#include <sstream>
-#else
-#include <dlfcn.h>
-#include <dirent.h>
-#include <cstdlib>
-#endif
-
-#include "ExampleForce.h"
-#include "MyIntegrator.h"
-#include "ExampleForceProxy.h"
 #include "MyIntegratorProxy.h"
-#include "openmm/serialization/SerializationProxy.h"
-
-#if defined(WIN32)
-    #include <windows.h>
-    extern "C" OPENMM_EXPORT_EXAMPLE void registerExampleSerializationProxies();
-    BOOL WINAPI DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
-        if (ul_reason_for_call == DLL_PROCESS_ATTACH)
-            registerExampleSerializationProxies();
-        return TRUE;
-    }
-#else
-    extern "C" void __attribute__((constructor)) registerExampleSerializationProxies();
-#endif
+#include "MyIntegrator.h"
+#include "openmm/serialization/SerializationNode.h"
+#include <sstream>
 
 using namespace ExamplePlugin;
 using namespace OpenMM;
+using namespace std;
 
-extern "C" OPENMM_EXPORT_EXAMPLE void registerExampleSerializationProxies() {
-    SerializationProxy::registerProxy(typeid(ExampleForce), new ExampleForceProxy());
-    //SerializationProxy::registerProxy(typeid(MyIntegrator), new MyIntegratorProxy());
+MyIntegratorProxy::MyIntegratorProxy() : SerializationProxy("MyIntegrator") {
+}
+
+void MyIntegratorProxy::serialize(const void* object, SerializationNode& node) const {
+    node.setIntProperty("version", 1);
+    const MyIntegrator& integrator = *reinterpret_cast<const MyIntegrator*>(object);
+    node.setDoubleProperty("stepSize", integrator.getStepSize());
+    node.setDoubleProperty("constraintTolerance", integrator.getConstraintTolerance());
+    node.setDoubleProperty("temperature", integrator.getTemperature());
+    node.setDoubleProperty("friction", integrator.getFriction());
+    node.setIntProperty("randomSeed", integrator.getRandomNumberSeed());
+}
+
+void* MyIntegratorProxy::deserialize(const SerializationNode& node) const {
+    if (node.getIntProperty("version") != 1)
+        throw OpenMMException("Unsupported version number");
+    MyIntegrator* integrator = new MyIntegrator(node.getDoubleProperty("temperature"),
+		    				node.getDoubleProperty("friction"),
+						node.getDoubleProperty("stepSize"));
+    integrator->setConstraintTolerance(node.getDoubleProperty("constraintTolerance"));
+    integrator->setRandomNumberSeed(node.getIntProperty("randomSeed"));
+    return integrator;
 }

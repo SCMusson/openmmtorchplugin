@@ -35,7 +35,7 @@
 #include "openmm/Integrator.h"
 #include "openmm/Kernel.h"
 #include "internal/windowsExportExample.h"
-
+#include "torch/torch.h"
 //namespace OpenMM {
 namespace ExamplePlugin {
 
@@ -110,6 +110,7 @@ public:
      * @param steps   the number of time steps to take
      */
     void step(int steps);
+    void torchstep(int steps, torch::Tensor& input, torch::Tensor& output);
 protected:
     /**
      * This will be called by the Context when it is created.  It informs the Integrator
@@ -141,6 +142,8 @@ private:
     double temperature, friction;
     int randomNumberSeed;
     OpenMM::Kernel kernel;
+    //OpenMM::Kernel kernelset;
+    //OpenMM::Kernel kernelget;
 };
 
 } // namespace OpenMM

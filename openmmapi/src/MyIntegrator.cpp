@@ -55,7 +55,12 @@ void MyIntegrator::initialize(OpenMM::ContextImpl& contextRef) {
     context = &contextRef;
     owner = &contextRef.getOwner();
     kernel = context->getPlatform().createKernel(IntegrateMyStepKernel::Name(), contextRef);
+    //kernelset = context->getPlatform().createKernel(IntegrateTorchSetKernel::Name(), contextRef);
+    //kernelget = context->getPlatform().createKernel(IntegrateTorchGetKernel::Name(), contextRef);
+
     kernel.getAs<IntegrateMyStepKernel>().initialize(contextRef.getSystem(), *this);
+    //kernelset.getAs<IntegrateTorchSetKernel>().initialize(contextRef.getSystem(), *this);
+    //kernelget.getAs<IntegrateTorchGetKernel>().initialize(contextRef.getSystem(), *this);
 }
 
 void MyIntegrator::setTemperature(double temp) {
@@ -92,4 +97,16 @@ void MyIntegrator::step(int steps) {
         context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
         kernel.getAs<IntegrateMyStepKernel>().execute(*context, *this);
     }
+}
+
+void MyIntegrator::torchstep(int steps, torch::Tensor& input, torch::Tensor& output){
+    context->updateContextState();
+    //context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+    kernel.getAs<IntegrateMyStepKernel>().executeSet(*context, *this, input);
+
+        
+    context->updateContextState();
+    context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+    kernel.getAs<IntegrateMyStepKernel>().executeGet(*context, *this, output);
+    //
 }

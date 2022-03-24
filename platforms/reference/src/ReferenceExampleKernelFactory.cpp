@@ -48,6 +48,8 @@ extern "C" OPENMM_EXPORT void registerKernelFactories() {
             ReferenceExampleKernelFactory* factory = new ReferenceExampleKernelFactory();
             platform.registerKernelFactory(CalcExampleForceKernel::Name(), factory);
             platform.registerKernelFactory(IntegrateMyStepKernel::Name(), factory);
+            platform.registerKernelFactory(IntegrateTorchSetKernel::Name(), factory);
+            platform.registerKernelFactory(IntegrateTorchGetKernel::Name(), factory);
         }
     }
 }
@@ -62,5 +64,9 @@ KernelImpl* ReferenceExampleKernelFactory::createKernelImpl(std::string name, co
         return new ReferenceCalcExampleForceKernel(name, platform);
     if (name == IntegrateMyStepKernel::Name())
 	return new ReferenceIntegrateMyStepKernel(name, platform, data);
+    if (name == IntegrateTorchSetKernel::Name())
+	return new ReferenceIntegrateTorchSetKernel(name, platform, data);
+    if (name == IntegrateTorchGetKernel::Name())
+	return new ReferenceIntegrateTorchGetKernel(name, platform, data);
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }
