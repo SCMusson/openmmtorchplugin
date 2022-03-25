@@ -33,7 +33,7 @@ import openmm.unit as unit
 /*
  * Add units to function outputs.
 */
-%pythonappend ExamplePlugin::ExampleForce::getBondParameters(int index, int& particle1, int& particle2,
+%pythonappend TorchIntegratorPlugin::ExampleForce::getBondParameters(int index, int& particle1, int& particle2,
                                                              double& length, double& k) const %{
     val[2] = unit.Quantity(val[2], unit.nanometer)
     val[3] = unit.Quantity(val[3], unit.kilojoule_per_mole/unit.nanometer**4)
@@ -52,7 +52,7 @@ import openmm.unit as unit
 }
 
 
-namespace ExamplePlugin {
+namespace TorchIntegratorPlugin {
 
 class ExampleForce : public OpenMM::Force {
 public:
@@ -84,12 +84,12 @@ public:
      * Add methods for casting a Force to an ExampleForce.
     */
     %extend {
-        static ExamplePlugin::ExampleForce& cast(OpenMM::Force& force) {
-            return dynamic_cast<ExamplePlugin::ExampleForce&>(force);
+        static TorchIntegratorPlugin::ExampleForce& cast(OpenMM::Force& force) {
+            return dynamic_cast<TorchIntegratorPlugin::ExampleForce&>(force);
         }
 
         static bool isinstance(OpenMM::Force& force) {
-            return (dynamic_cast<ExamplePlugin::ExampleForce*>(&force) != NULL);
+            return (dynamic_cast<TorchIntegratorPlugin::ExampleForce*>(&force) != NULL);
         }
     }
 };
@@ -118,12 +118,12 @@ public:
     %clear torch::Tensor& output;
 /*
     %extend {
-        static ExamplePlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {
-            return dynamic_cast<ExamplePlugin::MyIntegrator&>(integrator);
+        static TorchIntegratorPlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {
+            return dynamic_cast<TorchIntegratorPlugin::MyIntegrator&>(integrator);
         }
 
         static bool isinstance(OpenMM::Integrator& integrator){
-            return (dynamic_cast<ExamplePlugin::MyIntegrator*>(&integrator) != NULL);
+            return (dynamic_cast<TorchIntegratorPlugin::MyIntegrator*>(&integrator) != NULL);
         }
     }
 */

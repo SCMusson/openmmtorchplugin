@@ -34,16 +34,17 @@
 
 #include "openmm/Integrator.h"
 #include "openmm/Kernel.h"
-#include "internal/windowsExportExample.h"
+#include "internal/windowsExportTorchIntegrator.h"
 #include "torch/torch.h"
+#include <stdint.h>
 //namespace OpenMM {
-namespace ExamplePlugin {
+namespace TorchIntegratorPlugin {
 
 /**
  * This is an Integrator which simulates a System using Langevin dynamics.
  */
 
-class OPENMM_EXPORT_EXAMPLE MyIntegrator : public OpenMM::Integrator {
+class OPENMM_EXPORT_TORCHINTEGRATOR MyIntegrator : public OpenMM::Integrator {
 public:
     /**
      * Create a LangevinIntegrator.
@@ -111,6 +112,9 @@ public:
      */
     void step(int steps);
     void torchstep(int steps, torch::Tensor& input, torch::Tensor& output);
+    void torchset(unsigned long int in, int numParticles);
+    void torchget(unsigned long int out, int numParticles);
+    void torchupdate();
 protected:
     /**
      * This will be called by the Context when it is created.  It informs the Integrator

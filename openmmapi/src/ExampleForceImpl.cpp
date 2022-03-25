@@ -33,7 +33,7 @@
   #define _USE_MATH_DEFINES // Needed to get M_PI
 #endif
 #include "internal/ExampleForceImpl.h"
-#include "ExampleKernels.h"
+#include "TorchIntegratorKernels.h"
 #include "openmm/OpenMMException.h"
 #include "openmm/internal/ContextImpl.h"
 #include <cmath>
@@ -41,7 +41,7 @@
 #include <set>
 #include <sstream>
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 

@@ -34,10 +34,10 @@
 #include "openmm/Context.h"
 #include "openmm/OpenMMException.h"
 #include "openmm/internal/ContextImpl.h"
-#include "ExampleKernels.h"
+#include "TorchIntegratorKernels.h"
 #include <string>
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using std::string;
 using std::vector;
 
@@ -110,3 +110,14 @@ void MyIntegrator::torchstep(int steps, torch::Tensor& input, torch::Tensor& out
     kernel.getAs<IntegrateMyStepKernel>().executeGet(*context, *this, output);
     //
 }
+
+void MyIntegrator::torchset(unsigned long in, int numParticles){
+    kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, in, numParticles);
+}
+
+
+void MyIntegrator::torchget(unsigned long in, int numParticles){
+    kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, in, numParticles);
+}
+
+

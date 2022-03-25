@@ -34,7 +34,7 @@
 #include "openmm/OpenMMException.h"
 #include "openmm/internal/AssertionUtilities.h"
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 

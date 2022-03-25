@@ -1,8 +1,8 @@
-#ifndef OPENMM_EXAMPLE_FORCE_PROXY_H_
-#define OPENMM_EXAMPLE_FORCE_PROXY_H_
+#ifndef OPENMM_TORCHINTEGRATOR_FORCE_PROXY_H_
+#define OPENMM_TORCHINTEGRATOR_FORCE_PROXY_H_
 
 /* -------------------------------------------------------------------------- *
- *                                OpenMMExample                                 *
+ *                                OpenMMTorchIntegrator                                 *
  * -------------------------------------------------------------------------- *
  * This is part of the OpenMM molecular simulation toolkit originating from   *
  * Simbios, the NIH National Center for Physics-Based Simulation of           *
@@ -32,7 +32,7 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "internal/windowsExportExample.h"
+#include "internal/windowsExportTorchIntegrator.h"
 #include "openmm/serialization/SerializationProxy.h"
 
 namespace OpenMM {
@@ -41,7 +41,7 @@ namespace OpenMM {
  * This is a proxy for serializing ExampleForce objects.
  */
 
-class OPENMM_EXPORT_EXAMPLE MyIntegratorProxy : public SerializationProxy {
+class OPENMM_EXPORT_TORCHINTEGRATOR MyIntegratorProxy : public SerializationProxy {
 public:
     MyIntegratorProxy();
     void serialize(const void* object, SerializationNode& node) const;
@@ -50,4 +50,4 @@ public:
 
 } // namespace OpenMM
 
-#endif /*OPENMM_EXAMPLE_FORCE_PROXY_H_*/
+#endif /*OPENMM_TORCHINTEGRATOR_FORCE_PROXY_H_*/

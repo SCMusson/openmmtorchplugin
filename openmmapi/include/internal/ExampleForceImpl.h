@@ -1,5 +1,5 @@
-#ifndef OPENMM_EXAMPLEFORCEIMPL_H_
-#define OPENMM_EXAMPLEFORCEIMPL_H_
+#ifndef OPENMM_TORCHINTEGRATORFORCEIMPL_H_
+#define OPENMM_TORCHINTEGRATORFORCEIMPL_H_
 
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
@@ -39,7 +39,7 @@
 #include <set>
 #include <string>
 
-namespace ExamplePlugin {
+namespace TorchIntegratorPlugin {
 
 class System;
 
@@ -47,7 +47,7 @@ class System;
  * This is the internal implementation of ExampleForce.
  */
 
-class OPENMM_EXPORT_EXAMPLE ExampleForceImpl : public OpenMM::ForceImpl {
+class OPENMM_EXPORT_TORCHINTEGRATOR ExampleForceImpl : public OpenMM::ForceImpl {
 public:
     ExampleForceImpl(const ExampleForce& owner);
     ~ExampleForceImpl();
@@ -70,6 +70,6 @@ private:
     OpenMM::Kernel kernel;
 };
 
-} // namespace ExamplePlugin
+} // namespace TorchIntegratorPlugin
 
-#endif /*OPENMM_EXAMPLEFORCEIMPL_H_*/
+#endif /*OPENMM_TORCHINTEGRATORFORCEIMPL_H_*/

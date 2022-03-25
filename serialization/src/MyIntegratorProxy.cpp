@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------- *
- *                                OpenMMExample                                 *
+ *                                OpenMMTorchIntegrator                                 *
  * -------------------------------------------------------------------------- *
  * This is part of the OpenMM molecular simulation toolkit originating from   *
  * Simbios, the NIH National Center for Physics-Based Simulation of           *
@@ -34,7 +34,7 @@
 #include "openmm/serialization/SerializationNode.h"
 #include <sstream>
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 

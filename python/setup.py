@@ -7,8 +7,8 @@ import platform
 from torch.utils import cpp_extension
 
 openmm_dir = '@OPENMM_DIR@'
-exampleplugin_header_dir = '@EXAMPLEPLUGIN_HEADER_DIR@'
-exampleplugin_library_dir = '@EXAMPLEPLUGIN_LIBRARY_DIR@'
+exampleplugin_header_dir = '@TORCHINTEGRATORPLUGIN_HEADER_DIR@'
+exampleplugin_library_dir = '@TORCHINTEGRATORPLUGIN_LIBRARY_DIR@'
 torch_dir, _  = os.path.split('@TORCH_LIBRARY@')
 torch_libraries = '@TORCH_LIBRARIES@'
 torch_include = '@TORCH_INCLUDE_DIRS@'
@@ -33,9 +33,9 @@ include_dirs=[os.path.join(openmm_dir, 'include'), exampleplugin_header_dir]+tor
 library_dirs=[os.path.join(openmm_dir, 'lib'), exampleplugin_library_dir]#, torch_dir],
 print('include_dirs;: ', include_dirs)
 print('library dirs;: ', library_dirs)
-extension = Extension(name='_myintegratorplugin',
-                      sources=['ExamplePluginWrapper.cpp'],
-                      libraries=['OpenMM', 'ExamplePlugin'],#, 'Torch'],
+extension = Extension(name='_torchintegratorplugin',
+                      sources=['TorchIntegratorPluginWrapper.cpp'],
+                      libraries=['OpenMM', 'TorchIntegratorPlugin'],#, 'Torch'],
                       include_dirs=include_dirs,#[os.path.join(openmm_dir, 'include'), exampleplugin_header_dir],#+torch_include,#, torch_dir],
                       library_dirs=library_dirs,#[os.path.join(openmm_dir, 'lib'), exampleplugin_library_dir],#, torch_dir],
                       ##FROM TORCH OPENMM
@@ -45,18 +45,18 @@ extension = Extension(name='_myintegratorplugin',
                       extra_link_args=extra_link_args
                      )
 
-torch_extension = Extension(name = '_myintegratorplugin',
-                            sources = ['ExamplePluginWrapper.cpp'],
-                      libraries=['OpenMM', 'ExamplePlugin'],
+torch_extension = Extension(name = '_torchintegratorplugin',
+                            sources = ['TorchIntegratorPluginWrapper.cpp'],
+                      libraries=['OpenMM', 'TorchIntegratorPlugin'],
                             include_dirs = cpp_extension.include_paths()+[os.path.join(openmm_dir, 'include'), exampleplugin_header_dir],
                       library_dirs=[os.path.join(openmm_dir, 'lib'), exampleplugin_library_dir],#, torch_dir],
                             language = 'c++',
                       extra_link_args=extra_link_args,
                       )
 
-setup(name='myintegratorplugin',
+setup(name='torchintegratorplugin',
       version='1.0',
-      py_modules=['myintegratorplugin'],
+      py_modules=['torchintegratorplugin'],
       ext_modules=[extension],
       #ext_modules=[torch_extension]
      )

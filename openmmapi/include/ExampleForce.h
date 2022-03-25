@@ -1,5 +1,5 @@
-#ifndef OPENMM_EXAMPLEFORCE_H_
-#define OPENMM_EXAMPLEFORCE_H_
+#ifndef OPENMM_TORCHINTEGRATORFORCE_H_
+#define OPENMM_TORCHINTEGRATORFORCE_H_
 
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
@@ -35,16 +35,16 @@
 #include "openmm/Context.h"
 #include "openmm/Force.h"
 #include <vector>
-#include "internal/windowsExportExample.h"
+#include "internal/windowsExportTorchIntegrator.h"
 
-namespace ExamplePlugin {
+namespace TorchIntegratorPlugin {
 
 /**
  * This class implements an anharmonic bond force of the form E(r)=k*(r-length)^4.  It exists to
  * serve as an example of how to write plugins.
  */
 
-class OPENMM_EXPORT_EXAMPLE ExampleForce : public OpenMM::Force {
+class OPENMM_EXPORT_TORCHINTEGRATOR ExampleForce : public OpenMM::Force {
 public:
     /**
      * Create an ExampleForce.
@@ -128,6 +128,6 @@ public:
     }
 };
 
-} // namespace ExamplePlugin
+} // namespace TorchIntegratorPlugin
 
-#endif /*OPENMM_EXAMPLEFORCE_H_*/
+#endif /*OPENMM_TORCHINTEGRATORFORCE_H_*/
