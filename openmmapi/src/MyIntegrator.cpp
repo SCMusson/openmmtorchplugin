@@ -120,4 +120,8 @@ void MyIntegrator::torchget(unsigned long in, int numParticles){
     kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, in, numParticles);
 }
 
+void MyIntegrator::torchupdate(){
+    context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+
+}
 

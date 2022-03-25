@@ -73,7 +73,7 @@ public:
     
     void torchset(unsigned long int in, int numParticles);
     void torchget(unsigned long int out, int numParticles);
-    //void torchupdate();
+    void torchupdate();
 /*
     %extend {
         static TorchIntegratorPlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {
