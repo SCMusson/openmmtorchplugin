@@ -1,5 +1,5 @@
-#ifndef CUDA_EXAMPLE_KERNELS_H_
-#define CUDA_EXAMPLE_KERNELS_H_
+#ifndef CUDA_TORCHINTEGRATOR_KERNELS_H_
+#define CUDA_TORCHINTEGRATOR_KERNELS_H_
 
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
@@ -32,11 +32,11 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "ExampleKernels.h"
+#include "TorchIntegratorKernels.h"
 #include "openmm/cuda/CudaContext.h"
 #include "openmm/cuda/CudaArray.h"
 
-namespace ExamplePlugin {
+namespace TorchIntegratorPlugin {
 
 /**
  * This kernel is invoked by ExampleForce to calculate the forces acting on the system and the energy of the system.
@@ -78,6 +78,6 @@ private:
     OpenMM::CudaArray* params;
 };
 
-} // namespace ExamplePlugin
+} // namespace TorchIntegratorPlugin
 
-#endif /*CUDA_EXAMPLE_KERNELS_H_*/
+#endif /*CUDA_TORCHINTEGRATOR_KERNELS_H_*/

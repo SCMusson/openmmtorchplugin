@@ -43,11 +43,11 @@
 #include <iostream>
 #include <vector>
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 
-extern "C" OPENMM_EXPORT void registerExampleCudaKernelFactories();
+extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories();
 
 void testForce() {
     // Create a chain of particles connected by bonds.
@@ -138,7 +138,7 @@ void testChangingParameters() {
 
 int main(int argc, char* argv[]) {
     try {
-        registerExampleCudaKernelFactories();
+        registerTorchIntegratorCudaKernelFactories();
         if (argc > 1)
             Platform::getPlatformByName("CUDA").setPropertyDefaultValue("CudaPrecision", string(argv[1]));
         testForce();

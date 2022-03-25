@@ -29,13 +29,13 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "CudaExampleKernels.h"
-#include "CudaExampleKernelSources.h"
+#include "CudaTorchIntegratorKernels.h"
+#include "CudaTorchIntegratorKernelSources.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/cuda/CudaBondedUtilities.h"
 #include "openmm/cuda/CudaForceInfo.h"
 
-using namespace ExamplePlugin;
+using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 
@@ -90,7 +90,7 @@ void CudaCalcExampleForceKernel::initialize(const System& system, const ExampleF
     params->upload(paramVector);
     map<string, string> replacements;
     replacements["PARAMS"] = cu.getBondedUtilities().addArgument(params->getDevicePointer(), "float2");
-    cu.getBondedUtilities().addInteraction(atoms, cu.replaceStrings(CudaExampleKernelSources::exampleForce, replacements), force.getForceGroup());
+    cu.getBondedUtilities().addInteraction(atoms, cu.replaceStrings(CudaTorchIntegratorKernelSources::exampleForce, replacements), force.getForceGroup());
     cu.addForce(new CudaExampleForceInfo(force));
 }
 

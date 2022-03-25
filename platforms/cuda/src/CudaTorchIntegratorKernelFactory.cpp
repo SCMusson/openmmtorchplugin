@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------- *
- *                                   OpenMM                                   *
+ *                              OpenMMTorchIntegrator                                   *
  * -------------------------------------------------------------------------- *
  * This is part of the OpenMM molecular simulation toolkit originating from   *
  * Simbios, the NIH National Center for Physics-Based Simulation of           *
@@ -29,8 +29,44 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "CudaExampleKernelSources.h"
+#include <exception>
 
-using namespace ExamplePlugin;
-using namespace std;
+#include "CudaTorchIntegratorKernelFactory.h"
+#include "CudaTorchIntegratorKernels.h"
+#include "openmm/internal/windowsExport.h"
+#include "openmm/internal/ContextImpl.h"
+#include "openmm/OpenMMException.h"
 
+using namespace TorchIntegratorPlugin;
+using namespace OpenMM;
+
+extern "C" OPENMM_EXPORT void registerPlatforms() {
+}
+
+extern "C" OPENMM_EXPORT void registerKernelFactories() {
+    try {
+        Platform& platform = Platform::getPlatformByName("CUDA");
+        CudaTorchIntegratorKernelFactory* factory = new CudaTorchIntegratorKernelFactory();
+        platform.registerKernelFactory(CalcExampleForceKernel::Name(), factory);
+    }
+    catch (std::exception ex) {
+        // Ignore
+    }
+}
+
+extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories() {
+    try {
+        Platform::getPlatformByName("CUDA");
+    }
+    catch (...) {
+        Platform::registerPlatform(new CudaPlatform());
+    }
+    registerKernelFactories();
+}
+
+KernelImpl* CudaTorchIntegratorKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
+    CudaContext& cu = *static_cast<CudaPlatform::PlatformData*>(context.getPlatformData())->contexts[0];
+    if (name == CalcExampleForceKernel::Name())
+        return new CudaCalcExampleForceKernel(name, platform, cu, context.getSystem());
+    throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
+}
