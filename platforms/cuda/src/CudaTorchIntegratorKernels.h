@@ -78,6 +78,23 @@ private:
     OpenMM::CudaArray* params;
 };
 
+class CudaIntegrateMyStepKernel : public IntegrateMyStepKernel {
+public:
+    CudaIntegrateMyStepKernel(std::string name, const OpenMM::Platform& platform, OpenMM::CudaContext& cu) :
+	    IntegrateMyStepKernel(name, platform), cu(cu){
+	    }
+    ~CudaIntegrateMyStepKernel();
+    void initialize(const OpenMM::System& system, const MyIntegrator& integrator);
+
+    void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
+    void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles);
+    void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles);
+
+    double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
+private:
+    OpenMM::CudaContext& cu;
+    CUfunction setInputsKernel, getForcesKernel;
+};
 } // namespace TorchIntegratorPlugin
 
 #endif /*CUDA_TORCHINTEGRATOR_KERNELS_H_*/

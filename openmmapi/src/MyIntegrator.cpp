@@ -100,14 +100,14 @@ void MyIntegrator::step(int steps) {
 }
 
 void MyIntegrator::torchstep(int steps, torch::Tensor& input, torch::Tensor& output){
-    context->updateContextState();
+    //context->updateContextState();
     //context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
-    kernel.getAs<IntegrateMyStepKernel>().executeSet(*context, *this, input);
+    //kernel.getAs<IntegrateMyStepKernel>().executeSet(*context, *this, input);
 
         
-    context->updateContextState();
-    context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
-    kernel.getAs<IntegrateMyStepKernel>().executeGet(*context, *this, output);
+    //context->updateContextState();
+    //context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+    //kernel.getAs<IntegrateMyStepKernel>().executeGet(*context, *this, output);
     //
 }
 

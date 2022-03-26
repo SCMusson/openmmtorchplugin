@@ -96,8 +96,8 @@ public:
      * @param integrator the MyIntegrator this kernel is being used for
      */
     virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
-    virtual void executeSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input) = 0;
-    virtual void executeGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& output) = 0;
+    //virtual void executeSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input) = 0;
+    //virtual void executeGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& output) = 0;
     virtual void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles) = 0;
     virtual void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int, int numParticles) = 0;
     
