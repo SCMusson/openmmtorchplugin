@@ -114,9 +114,11 @@ void testIntegrator() {
     double diffforce = 0.0;
     double sumforcestate = 0.0;
     double sumforceoutput = 0.0;
-    double scale = 1.0/(double) 0x100000000LL;
+    //double scale = 1.0/(double) 0x100000000LL;
     for (int i = 0; i < numParticles; i++){
-	cout << statebefore.getForces()[i][0] << " <- " << stateget.getForces()[i][0] << " <- " << *cpu_output[3*i].data_ptr<float>()*scale << endl;
+	//cout <<"0: "  << statebefore.getForces()[i][0] << " <- " << stateget.getForces()[i][0] << " <- " << *cpu_output[3*i].data_ptr<float>() << endl;
+	//cout <<"1: "  << statebefore.getForces()[i][1] << " <- " << stateget.getForces()[i][1] << " <- " << *cpu_output[3*i+1].data_ptr<float>() << endl;
+	//cout <<"2: "  << statebefore.getForces()[i][2] << " <- " << stateget.getForces()[i][2] << " <- " << *cpu_output[3*i+2].data_ptr<float>() << endl;
         for (int j = 0; j < 3; j++){
 	    diffforce += abs(stateget.getForces()[i][j]) - *cpu_output[3*i+j].abs().data_ptr<float>();
 	    sumforcestate += abs(stateget.getForces()[i][j]);
@@ -126,10 +128,8 @@ void testIntegrator() {
     cout << "diff force: " << diffforce << endl;
     cout << "sumforcestate: " << sumforcestate << endl;
     cout << "sumforceoutptu: " << sumforceoutput << endl;
-    /*
     ASSERT_EQUAL_TOL(diffforce, 0.0, 1e-5);
     ASSERT_EQUAL_TOL(sumforcestate, sumforceoutput, 1e-5);
-    */
 }
 
 int main(int argc, char* argv[]) {

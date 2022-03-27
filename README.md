@@ -1,20 +1,14 @@
-OpenMM Example Plugin
+OpenMM TorchIntegrator Plugin
 =====================
 
-This project is an example of how to write a plugin for [OpenMM](https://simtk.org/home/openmm).
-It includes nearly everything you would want in a real plugin, including implementations for the
-Reference, OpenCL, and CUDA platforms, serialization support, test cases, and a Python API.  It
-is useful as a starting point for anyone who wants to write a plugin.
-
-This plugin defines a single Force subclass called ExampleForce, which implements an anharmonic
-bond force of the form E(r)=k*r<sup>4</sup>.  Of course, you don't actually need a plugin to
-implement a force of that form: you could do it trivially with CustomBondForce.  But since it is
-so simple, it makes a very good example.
-
-I assume you are already familiar with the OpenMM API, and that you have already read the OpenMM
-Developer Guide.  If not, go read it now.  I will not repeat anything that is covered there, and
-only focus on what is unique to this plugin.
-
+This project is built from the OpenMM Example plugin and designed for [OpenMM](https://simtk.org/home/openmm)
+It enables you to set the positions of simulation from a torch tensor and retrieve the forces of
+those positions of a simulation into a torch tensor.
+The primary benefit of this integrator is that it allows the copying of torch::Tensor (device =
+cuda) directly into the cudaarrays of Openmm thus avoiding GPU -> CPU -> GPU operations. While
+speed tests have yet to be carried out (and the plugin itself has not been fully tested yet) it
+is hoped that this will enable Openmm to be used as a loss function for a neural network
+predicting protein structure.
 
 Building The Plugin
 ===================
@@ -35,11 +29,10 @@ the OpenMM header files and libraries.
 5. Set CMAKE_INSTALL_PREFIX to the directory where the plugin should be installed.  Usually,
 this will be the same as OPENMM_DIR, so the plugin will be added to your OpenMM installation.
 
-6. If you plan to build the OpenCL platform, make sure that OPENCL_INCLUDE_DIR and
-OPENCL_LIBRARY are set correctly, and that EXAMPLE_BUILD_OPENCL_LIB is selected.
+6. PYTORCH_DIR to the directory where Libtorch is installed (Libtorch can be obtained from the [PyTorch website](https://pytorch.org))
 
 7. If you plan to build the CUDA platform, make sure that CUDA_TOOLKIT_ROOT_DIR is set correctly
-and that EXAMPLE_BUILD_CUDA_LIB is selected.
+and that TORCHINTEGRATOR_BUILD_CUDA_LIB is selected.
 
 8. Press "Configure" again if necessary, then press "Generate".
 
@@ -122,41 +115,8 @@ This runs SWIG to generate the C++ and Python files for the extension module
 install the module.  Once you do that, you can use the plugin from your Python scripts:
 
     from simtk.openmm import System
-    from exampleplugin import ExampleForce
-    system = System()
-    force = ExampleForce()
-    system.addForce(force)
+    from torchintegratorplugin import MyIntegrator
 
+    integrator = MyIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
 
-License
-=======
-
-This is part of the OpenMM molecular simulation toolkit originating from
-Simbios, the NIH National Center for Physics-Based Simulation of
-Biological Structures at Stanford, funded under the NIH Roadmap for
-Medical Research, grant U54 GM072970. See https://simtk.org.
-
-Portions copyright (c) 2014 Stanford University and the Authors.
-
-Authors: Peter Eastman
-
-Contributors:
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS, CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-USE OR OTHER DEALINGS IN THE SOFTWARE.
 

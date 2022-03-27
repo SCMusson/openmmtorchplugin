@@ -47,7 +47,6 @@ extern "C" OPENMM_EXPORT void registerKernelFactories() {
     try {
         Platform& platform = Platform::getPlatformByName("CUDA");
         CudaTorchIntegratorKernelFactory* factory = new CudaTorchIntegratorKernelFactory();
-        platform.registerKernelFactory(CalcExampleForceKernel::Name(), factory);
         platform.registerKernelFactory(IntegrateMyStepKernel::Name(), factory);
     }
     catch (std::exception ex) {
@@ -67,8 +66,6 @@ extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories() {
 
 KernelImpl* CudaTorchIntegratorKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
     CudaContext& cu = *static_cast<CudaPlatform::PlatformData*>(context.getPlatformData())->contexts[0];
-    if (name == CalcExampleForceKernel::Name())
-        return new CudaCalcExampleForceKernel(name, platform, cu, context.getSystem());
     if (name == IntegrateMyStepKernel::Name())
         return new CudaIntegrateMyStepKernel(name, platform, cu);
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());

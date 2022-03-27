@@ -11,11 +11,11 @@ void setInputs(const real* __restrict__ input, real4* __restrict__ posq, int num
 
 
 extern "C" __global__
-void getForces(real* __restrict__ output, long long* __restrict__ forceBuffers, int numAtoms, int paddedNumAtoms){
+void getForces(real* __restrict__ output, long long* __restrict__ forceBuffers, int numAtoms, int paddedNumAtoms, float scale){
     for (int atom = blockIdx.x*blockDim.x+threadIdx.x; atom < numAtoms; atom += blockDim.x*gridDim.x){
-	output[3*atom] = forceBuffers[atom];
-	output[3*atom+1] = forceBuffers[atom+1];//paddedNumAtoms];
-	output[3*atom+2] = forceBuffers[atom+2];//*paddedNumAtoms];
+	output[3*atom] = forceBuffers[atom]*scale;
+	output[3*atom+1] = forceBuffers[atom+1*paddedNumAtoms]*scale;//paddedNumAtoms];
+	output[3*atom+2] = forceBuffers[atom+2*paddedNumAtoms]*scale;
     }
 }
 

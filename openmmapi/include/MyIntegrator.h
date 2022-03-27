@@ -41,13 +41,13 @@
 namespace TorchIntegratorPlugin {
 
 /**
- * This is an Integrator which simulates a System using Langevin dynamics.
+ * This was formerly LangevinIntegrator.
  */
 
 class OPENMM_EXPORT_TORCHINTEGRATOR MyIntegrator : public OpenMM::Integrator {
 public:
     /**
-     * Create a LangevinIntegrator.
+     * Create a MyIntegrator, with a bunch of excess methods to satisfy virtual methods in OpenMM::Integrator.
      * 
      * @param temperature    the temperature of the heat bath (in Kelvin)
      * @param frictionCoeff  the friction coefficient which couples the system to the heat bath (in inverse picoseconds)
@@ -111,7 +111,10 @@ public:
      * @param steps   the number of time steps to take
      */
     void step(int steps);
-    void torchstep(int steps, torch::Tensor& input, torch::Tensor& output);
+    /*
+     * My Extra methods, everything else can kinda be ignored
+     *
+     */
     void torchset(unsigned long int in, int numParticles);
     void torchget(unsigned long int out, int numParticles);
     void torchupdate();
@@ -146,8 +149,6 @@ private:
     double temperature, friction;
     int randomNumberSeed;
     OpenMM::Kernel kernel;
-    //OpenMM::Kernel kernelset;
-    //OpenMM::Kernel kernelget;
 };
 
 } // namespace OpenMM

@@ -33,49 +33,12 @@
  * -------------------------------------------------------------------------- */
 
 #include "TorchIntegratorKernels.h"
-//#include "mykernels.h"
 #include "openmm/reference/ReferencePlatform.h"
 #include "openmm/reference/ReferenceStochasticDynamics.h"
-//#include "openmm/reference/ReferenceKernels.h"
 #include "openmm/Platform.h"
 #include <vector>
 namespace TorchIntegratorPlugin {
 
-/**
- * This kernel is invoked by ExampleForce to calculate the forces acting on the system and the energy of the system.
- */
-class ReferenceCalcExampleForceKernel : public CalcExampleForceKernel {
-public:
-    ReferenceCalcExampleForceKernel(std::string name, const OpenMM::Platform& platform) : CalcExampleForceKernel(name, platform) {
-    }
-    /**
-     * Initialize the kernel.
-     * 
-     * @param system     the System this kernel will be applied to
-     * @param force      the ExampleForce this kernel will be used for
-     */
-    void initialize(const OpenMM::System& system, const ExampleForce& force);
-    /**
-     * Execute the kernel to calculate the forces and/or energy.
-     *
-     * @param context        the context in which to execute this kernel
-     * @param includeForces  true if forces should be calculated
-     * @param includeEnergy  true if the energy should be calculated
-     * @return the potential energy due to the force
-     */
-    double execute(OpenMM::ContextImpl& context, bool includeForces, bool includeEnergy);
-    /**
-     * Copy changed parameters over to a context.
-     *
-     * @param context    the context to copy parameters to
-     * @param force      the ExampleForce to copy the parameters from
-     */
-    void copyParametersToContext(OpenMM::ContextImpl& context, const ExampleForce& force);
-private:
-    int numBonds;
-    std::vector<int> particle1, particle2;
-    std::vector<double> length, k;
-};
 
 /**
  * This kernel is invoked by MyIntegrator to take one time step.
@@ -100,82 +63,9 @@ public:
      * @param integrator the MyIntegrator this kernel is being used for
      */
     void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
-    void executeSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input);
-    void executeGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& output);
     void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles);
     void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles);
     
-    /**
-     * Compute the kinetic energy.
-     * 
-     * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
-     */
-
-    double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
-private:
-    OpenMM::ReferencePlatform::PlatformData& data;
-    OpenMM::ReferenceStochasticDynamics* dynamics;
-    std::vector<double> masses;
-    double prevTemp, prevFriction, prevStepSize;
-};
-/**
- * This kernel should handle torch stuff
- */
-class ReferenceIntegrateTorchSetKernel : public IntegrateTorchSetKernel {
-public:
-    ReferenceIntegrateTorchSetKernel(std::string name, const OpenMM::Platform& platform, OpenMM::ReferencePlatform::PlatformData& data) : IntegrateTorchSetKernel(name, platform),
-        data(data), dynamics(0) {
-    }
-    ~ReferenceIntegrateTorchSetKernel();
-    /**
-     * Initialize the kernel, setting up the particle masses.
-     * 
-     * @param system     the System this kernel will be applied to
-     * @param integrator the MyIntegrator this kernel will be used for
-     */
-    void initialize(const OpenMM::System& system, const MyIntegrator& integrator);
-    /**
-     * Execute the kernel.
-     * 
-     * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
-     */
-    void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input);
-    /**
-     * Compute the kinetic energy.
-     * 
-     * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
-     */
-
-    double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
-private:
-    OpenMM::ReferencePlatform::PlatformData& data;
-    OpenMM::ReferenceStochasticDynamics* dynamics;
-    std::vector<double> masses;
-    double prevTemp, prevFriction, prevStepSize;
-};
-class ReferenceIntegrateTorchGetKernel : public IntegrateTorchGetKernel {
-public:
-    ReferenceIntegrateTorchGetKernel(std::string name, const OpenMM::Platform& platform, OpenMM::ReferencePlatform::PlatformData& data) : IntegrateTorchGetKernel(name, platform),
-        data(data), dynamics(0) {
-    }
-    ~ReferenceIntegrateTorchGetKernel();
-    /**
-     * Initialize the kernel, setting up the particle masses.
-     * 
-     * @param system     the System this kernel will be applied to
-     * @param integrator the MyIntegrator this kernel will be used for
-     */
-    void initialize(const OpenMM::System& system, const MyIntegrator& integrator);
-    /**
-     * Execute the kernel.
-     * 
-     * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
-     */
-    void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator, torch::Tensor& input);
     /**
      * Compute the kinetic energy.
      * 

@@ -40,90 +40,10 @@ using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 
-class CudaExampleForceInfo : public CudaForceInfo {
-public:
-    CudaExampleForceInfo(const ExampleForce& force) : force(force) {
-    }
-    int getNumParticleGroups() {
-        return force.getNumBonds();
-    }
-    void getParticlesInGroup(int index, vector<int>& particles) {
-        int particle1, particle2;
-        double length, k;
-        force.getBondParameters(index, particle1, particle2, length, k);
-        particles.resize(2);
-        particles[0] = particle1;
-        particles[1] = particle2;
-    }
-    bool areGroupsIdentical(int group1, int group2) {
-        int particle1, particle2;
-        double length1, length2, k1, k2;
-        force.getBondParameters(group1, particle1, particle2, length1, k1);
-        force.getBondParameters(group2, particle1, particle2, length2, k2);
-        return (length1 == length2 && k1 == k2);
-    }
-private:
-    const ExampleForce& force;
-};
 
-CudaCalcExampleForceKernel::~CudaCalcExampleForceKernel() {
-    cu.setAsCurrent();
-    if (params != NULL)
-        delete params;
-}
 
-void CudaCalcExampleForceKernel::initialize(const System& system, const ExampleForce& force) {
-    cu.setAsCurrent();
-    int numContexts = cu.getPlatformData().contexts.size();
-    int startIndex = cu.getContextIndex()*force.getNumBonds()/numContexts;
-    int endIndex = (cu.getContextIndex()+1)*force.getNumBonds()/numContexts;
-    numBonds = endIndex-startIndex;
-    if (numBonds == 0)
-        return;
-    vector<vector<int> > atoms(numBonds, vector<int>(2));
-    params = CudaArray::create<float2>(cu, numBonds, "bondParams");
-    vector<float2> paramVector(numBonds);
-    for (int i = 0; i < numBonds; i++) {
-        double length, k;
-        force.getBondParameters(startIndex+i, atoms[i][0], atoms[i][1], length, k);
-        paramVector[i] = make_float2((float) length, (float) k);
-    }
-    params->upload(paramVector);
-    map<string, string> replacements;
-    replacements["PARAMS"] = cu.getBondedUtilities().addArgument(params->getDevicePointer(), "float2");
-    cu.getBondedUtilities().addInteraction(atoms, cu.replaceStrings(CudaTorchIntegratorKernelSources::exampleForce, replacements), force.getForceGroup());
-    cu.addForce(new CudaExampleForceInfo(force));
-}
 
-double CudaCalcExampleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    return 0.0;
-}
 
-void CudaCalcExampleForceKernel::copyParametersToContext(ContextImpl& context, const ExampleForce& force) {
-    cu.setAsCurrent();
-    int numContexts = cu.getPlatformData().contexts.size();
-    int startIndex = cu.getContextIndex()*force.getNumBonds()/numContexts;
-    int endIndex = (cu.getContextIndex()+1)*force.getNumBonds()/numContexts;
-    if (numBonds != endIndex-startIndex)
-        throw OpenMMException("updateParametersInContext: The number of bonds has changed");
-    if (numBonds == 0)
-        return;
-    
-    // Record the per-bond parameters.
-    
-    vector<float2> paramVector(numBonds);
-    for (int i = 0; i < numBonds; i++) {
-        int atom1, atom2;
-        double length, k;
-        force.getBondParameters(startIndex+i, atom1, atom2, length, k);
-        paramVector[i] = make_float2((float) length, (float) k);
-    }
-    params->upload(paramVector);
-    
-    // Mark that the current reordering may be invalid.
-    
-    cu.invalidateMolecules();
-}
 
 CudaIntegrateMyStepKernel::~CudaIntegrateMyStepKernel(){
     cu.setAsCurrent();
@@ -184,7 +104,8 @@ void CudaIntegrateMyStepKernel::executePGet(ContextImpl& context, const MyIntegr
     //torch::Tensor output = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     //{
     int paddedNumAtoms = cu.getPaddedNumAtoms();
-    void* outArgs[] = {&ptr, &cu.getForce().getDevicePointer(), &numParticles, &paddedNumAtoms};
+    float scale = 1.0/(double) 0x100000000LL;
+    void* outArgs[] = {&ptr, &cu.getForce().getDevicePointer(), &numParticles, &paddedNumAtoms, &scale};
     cu.executeKernel(getForcesKernel, outArgs, numParticles);
     //CHECK_RESULT(cuCtxSynchronize(), "Error synchronizing CUDA context");
     //}

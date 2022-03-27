@@ -46,10 +46,7 @@ extern "C" OPENMM_EXPORT void registerKernelFactories() {
         Platform& platform = Platform::getPlatform(i);
         if (dynamic_cast<ReferencePlatform*>(&platform) != NULL) {
             ReferenceTorchIntegratorKernelFactory* factory = new ReferenceTorchIntegratorKernelFactory();
-            platform.registerKernelFactory(CalcExampleForceKernel::Name(), factory);
             platform.registerKernelFactory(IntegrateMyStepKernel::Name(), factory);
-            platform.registerKernelFactory(IntegrateTorchSetKernel::Name(), factory);
-            platform.registerKernelFactory(IntegrateTorchGetKernel::Name(), factory);
         }
     }
 }
@@ -60,13 +57,7 @@ extern "C" OPENMM_EXPORT void registerTorchIntegratorReferenceKernelFactories() 
 
 KernelImpl* ReferenceTorchIntegratorKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
     ReferencePlatform::PlatformData& data = *static_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    if (name == CalcExampleForceKernel::Name())
-        return new ReferenceCalcExampleForceKernel(name, platform);
     if (name == IntegrateMyStepKernel::Name())
 	return new ReferenceIntegrateMyStepKernel(name, platform, data);
-    if (name == IntegrateTorchSetKernel::Name())
-	return new ReferenceIntegrateTorchSetKernel(name, platform, data);
-    if (name == IntegrateTorchGetKernel::Name())
-	return new ReferenceIntegrateTorchGetKernel(name, platform, data);
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }
