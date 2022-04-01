@@ -35,6 +35,7 @@
 #include "openmm/reference/RealVec.h"
 //#include "openmm/reference/ReferencePlatform.h"
 #include "openmm/reference/SimTKOpenMMUtilities.h"
+#include "torch/torch.h"
 
 using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
@@ -110,9 +111,9 @@ void ReferenceIntegrateMyStepKernel::execute(ContextImpl& context, const MyInteg
     data.time += stepSize;
     data.stepCount++;
 }
-void ReferenceIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles) {
-    double * ptr = reinterpret_cast<double*>(in);
-    torch::Tensor input = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat));
+void ReferenceIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset) {
+    double * ptr = reinterpret_cast<double*>(positions_in+(8*3*offset*numParticles));
+    torch::Tensor input = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     vector<Vec3>& posData = extractPositions(context);
     torch::Tensor _input = input.to(torch::kFloat64);
     double* __input = _input.data_ptr<double>();
@@ -124,13 +125,19 @@ void ReferenceIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyI
     }
 }
 
-void ReferenceIntegrateMyStepKernel::executePGet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles) {
-    double * ptr = reinterpret_cast<double*>(out);
-    torch::Tensor output = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
+void ReferenceIntegrateMyStepKernel::executePGet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int forces_out, int numParticles, int offset) {
+    double * fptr = reinterpret_cast<double*>(forces_out+(8*3*offset*numParticles));
+    //torch::Tensor output = torch::from_blob(fptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     vector<Vec3>& ForceData = extractForces(context);
-    torch::Tensor fdata = torch::from_blob(ForceData.data(), {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
+    torch::Tensor fdata = torch::from_blob(ForceData.data(), {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64)).clone();
     //std::memcpy(fdata.data_ptr<double>(), output.data_ptr<double>(), 3*numParticles);
-    std::memcpy(output.data_ptr<double>(), fdata.data_ptr<double>(), 8*3*numParticles);
+    //std::memcpy(output.data_ptr<double>(), fdata.data_ptr<double>(), 8*3*numParticles);
+    //torch::Tensor forces_out;
+    //torch::Scalar scale = 1.0/(double) 0x100000000LL;
+    //torch::Tensor forces_out = torch::mul(torch::from_blob(ForceData.data(), {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64)).clone(), scale);
+    //fdata = torch::mul(fdata, scale);
+    //std::memcpy(output.data_ptr<double>(), fdata.data_ptr<double>(), 8*3*numParticles);
+    std::memcpy(fptr, fdata.data_ptr<double>(), 8*3*numParticles);
     //torch::TensorAccessor<double, 2> f_a = output.accessor<double, 2>();
     //f_a[0][0]+=5.0;
 }

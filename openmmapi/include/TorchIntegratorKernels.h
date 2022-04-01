@@ -61,8 +61,8 @@ public:
      * @param integrator the MyIntegrator this kernel is being used for
      */
     virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
-    virtual void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles) = 0;
-    virtual void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int, int numParticles) = 0;
+    virtual void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset = 0) = 0;
+    virtual void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out_forces, int numParticles, int offset = 0) = 0;
 
     /**
     /**

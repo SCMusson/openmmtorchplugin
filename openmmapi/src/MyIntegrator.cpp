@@ -91,13 +91,29 @@ void MyIntegrator::step(int steps) {
 }
 
 
-void MyIntegrator::torchset(unsigned long in, int numParticles){
-    kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, in, numParticles);
+void MyIntegrator::torchset(unsigned long positions_in, int numParticles){
+    kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, positions_in, numParticles);
 }
 
 
-void MyIntegrator::torchget(unsigned long in, int numParticles){
-    kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, in, numParticles);
+void MyIntegrator::torchget(unsigned long positions_in, int numParticles){
+    kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, positions_in, numParticles);
+}
+
+void MyIntegrator::torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, int numParticles, int batch_size){
+    for (int i = 0; i < batch_size; i++) {
+        kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, positions_in, numParticles, i);
+	context->calcForcesAndEnergy(true, false, getIntegrationForceGroups());
+	kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, forces_out, numParticles, i);
+    }
+}
+void MyIntegrator::torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size){
+    double * eptr = reinterpret_cast<double*>(energy_out);
+    for (int i = 0; i < batch_size; i++) {
+        kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, positions_in, numParticles, i);
+	eptr[i] = context->calcForcesAndEnergy(true, true, getIntegrationForceGroups());
+	kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, forces_out, numParticles, i);
+    }
 }
 
 void MyIntegrator::torchupdate(){

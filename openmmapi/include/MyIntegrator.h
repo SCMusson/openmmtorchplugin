@@ -35,7 +35,7 @@
 #include "openmm/Integrator.h"
 #include "openmm/Kernel.h"
 #include "internal/windowsExportTorchIntegrator.h"
-#include "torch/torch.h"
+//#include "torch/torch.h"
 #include <stdint.h>
 //namespace OpenMM {
 namespace TorchIntegratorPlugin {
@@ -115,8 +115,10 @@ public:
      * My Extra methods, everything else can kinda be ignored
      *
      */
-    void torchset(unsigned long int in, int numParticles);
-    void torchget(unsigned long int out, int numParticles);
+    void torchset(unsigned long int positions_in, int numParticles);
+    void torchget(unsigned long int forces_out, int numParticles);
+    void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, int numParticles, int batch_size);
+    void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size);
     void torchupdate();
 protected:
     /**

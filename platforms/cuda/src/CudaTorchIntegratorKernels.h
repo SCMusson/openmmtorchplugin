@@ -48,8 +48,8 @@ public:
     void initialize(const OpenMM::System& system, const MyIntegrator& integrator);
 
     void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
-    void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles);
-    void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles);
+    void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles, int offset);
+    void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles, int offset);
 
     double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
 private:

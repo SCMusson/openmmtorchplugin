@@ -78,13 +78,15 @@ void testIntegrator() {
     auto input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCUDA,0));
 
     unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<float>());
+    cout << "here1" <<endl; 
     integ.torchset(ptr, numParticles);
+    cout << "here2" <<endl; 
     State stateset = context.getState(State::Energy | State::Forces | State::Positions);
+    cout << "here3" <<endl; 
     torch::Tensor cpu_input = input.to(torch::kCPU);
     double diffpos = 0.0;
     double sumposstate = 0.0;
     double sumposinput = 0.0;
-    cout << "here?" <<endl; 
     for (int i = 0; i < numParticles; i++) {
 	for (int j = 0; j < 3; j++) {
 	    diffpos += abs(stateset.getPositions()[i][j]) - *cpu_input[3*i+j].abs().data_ptr<float>();
@@ -131,13 +133,74 @@ void testIntegrator() {
     ASSERT_EQUAL_TOL(diffforce, 0.0, 1e-5);
     ASSERT_EQUAL_TOL(sumforcestate, sumforceoutput, 1e-5);
 }
+void testSingleBond(){
+    cout << "testSingleBond" << endl;
+
+    Platform& platform = Platform::getPlatformByName("CUDA");
+    System system;
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    MyIntegrator integ(0, 0.1,0.1);
+    HarmonicBondForce* forceField = new HarmonicBondForce();
+    forceField->addBond(0, 1, 1.5, 0.8);
+    system.addForce(forceField);
+    Context context(system, integ, platform);
+    vector<Vec3> pos(2);
+    pos[0] = Vec3(0, 2, 0);
+    pos[1] = Vec3(0, 0, 0);
+    int numParticles = 2;
+    context.setPositions(pos);
+    State state = context.getState(State::Positions | State::Velocities | State::Forces);
+    {
+
+     //   const vector<Vec3>& forces = state.getForces();
+	
+	//cout << 0.8*(1.5-(pos[0][1]-pos[1][1])) << endl;
+	//cout << 0.8*(-1.5-(pos[1][1]-pos[0][1])) << endl;
+	
+//	ASSERT_EQUAL_VEC(Vec3(0, 0.8*(1.5-(pos[0][1]-pos[1][1])), 0), forces[0], 1e-5);
+//	ASSERT_EQUAL_VEC(Vec3(0, 0.8*(-1.5-(pos[1][1]-pos[0][1])), 0), forces[1], 1e-5);
+    }
+    for (int i = 0; i < 100000; i++){
+        torch::Tensor input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCUDA).dtype(torch::kFloat));
+        unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<float>());
+        integ.torchset(ptr, numParticles);
+        State stateset = context.getState(State::Energy | State::Forces | State::Positions);
+        torch::Tensor cpu_input = input.to(torch::kCPU);
+        
+    
+        {
+            Vec3 dvec;
+            for (int i = 0; i < 3; i++){
+                dvec[i]=*cpu_input[3+i].data_ptr<float>()-*cpu_input[i].data_ptr<float>();
+            }
+    	    double dsca = sqrt(dvec.dot(dvec));
+    	    double tforce = - 0.8*(dsca-1.5);
+    	    Vec3 force0 = -(dvec/dsca)*tforce;
+    	    Vec3 force1 = (dvec/dsca)*tforce;
+    	    vector<Vec3> forces  = stateset.getForces();
+    	/*
+    	cout << dvec << " and " << dsca << " or " << force<< endl;
+    	cout << "Force0: " << force0 << "  " << forces[0] <<endl;
+    	cout << "Force1: " << force1 << "  " << forces[0] <<endl;
+    	*/
+    	    ASSERT_EQUAL_VEC(force0, forces[0], 1e-5);
+    	    ASSERT_EQUAL_VEC(force1, forces[1], 1e-5);
+    	    cout <<"Success: " << i << endl;
+        }
+    }
+    cout << "finished" << endl;
+
+}
 
 int main(int argc, char* argv[]) {
     try {
         registerTorchIntegratorCudaKernelFactories();
         if (argc > 1)
             Platform::getPlatformByName("CUDA").setPropertyDefaultValue("CudaPrecision", string(argv[1]));
-        testIntegrator();
+        //testIntegrator();
+        //testIntegrator();
+	testSingleBond();
     }
     catch(const std::exception& e) {
         std::cout << "exception: " << e.what() << std::endl;

@@ -63,10 +63,10 @@ void CudaIntegrateMyStepKernel::execute(ContextImpl&, const MyIntegrator& integr
    return;
 }
 
-void CudaIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles){
+void CudaIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles, int offset){
     //cout << "Here in CudaIntegrateMyStepKernel::executePSet " << endl;
 
-    float * ptr = reinterpret_cast<float*>(in);
+    float * ptr = reinterpret_cast<float*>(in+(4*3*offset*numParticles));
     /*
     torch::Tensor input = torch::from_blob(ptr, {numParticles*3}, torch::kCUDA);//, torch::TensorOptions().dtype(torch::kFloat));
     //vector<Vec3>& posData = extractPositions(context);
@@ -90,8 +90,8 @@ void CudaIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegr
     //o
     //////CUresult cuMemcpy ( CUdeviceptr dst, CUdeviceptr src, size_t ByteCount )
     //void* setArgs[] = {&_input, &cu.getPosq().getDevicePointer(), &cu.getAtomIndexArray().getDevicePointer(), &numParticles, &paddedNumAtoms};
-    
-    void* setArgs[] = {&ptr, &cu.getPosq().getDevicePointer(), &numParticles};
+    //
+    void* setArgs[] = {&ptr, &cu.getPosq().getDevicePointer(),&cu.getAtomIndexArray().getDevicePointer(), &numParticles};
     cu.executeKernel(setInputsKernel, setArgs, numParticles);
     
     //CHECK_RESULT(cuCtxSynchronize(), "Error synchronizing CUDA context");
@@ -99,15 +99,18 @@ void CudaIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegr
     //}// see above
 	//int numParticles = posData.size();
 }
-void CudaIntegrateMyStepKernel::executePGet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles){
-    float * ptr = reinterpret_cast<float*>(out);
+void CudaIntegrateMyStepKernel::executePGet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles, int offset){
+    float * ptr = reinterpret_cast<float*>(out+(4*3*offset*numParticles));
+    ContextSelector selector(cu);
     //torch::Tensor output = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     //{
     int paddedNumAtoms = cu.getPaddedNumAtoms();
     float scale = 1.0/(double) 0x100000000LL;
-    void* outArgs[] = {&ptr, &cu.getForce().getDevicePointer(), &numParticles, &paddedNumAtoms, &scale};
+    void* outArgs[] = {&ptr, &cu.getForce().getDevicePointer(), &cu.getAtomIndexArray().getDevicePointer(), &numParticles, &paddedNumAtoms, &scale};
     cu.executeKernel(getForcesKernel, outArgs, numParticles);
+
     //CHECK_RESULT(cuCtxSynchronize(), "Error synchronizing CUDA context");
+    //cuCtxSynchronize()
     //}
 }
 double CudaIntegrateMyStepKernel::computeKineticEnergy(ContextImpl& context, const MyIntegrator& integrator){

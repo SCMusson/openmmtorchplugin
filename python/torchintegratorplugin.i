@@ -36,6 +36,7 @@ import openmm.unit as unit
 /*
  * Convert C++ exceptions to Python exceptions.
 */
+
 %exception {
     try {
         $action
@@ -67,13 +68,12 @@ public:
 
     void step(int steps);
 
-    %apply torch::Tensor& OUTPUT {torch::Tensor& output};
-    void torchstep(int steps, torch::Tensor& input, torch::Tensor& output);
-    %clear torch::Tensor& output;
     
     void torchset(unsigned long int in, int numParticles);
     void torchget(unsigned long int out, int numParticles);
     void torchupdate();
+    void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, int numParticles, int batch_size);
+    void torchMultiStructureE(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size);
 /*
     %extend {
         static TorchIntegratorPlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {

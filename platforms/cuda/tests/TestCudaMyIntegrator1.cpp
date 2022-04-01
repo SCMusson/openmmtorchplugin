@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2020 Stanford University and the Authors.      *
+ * Portions copyright (c) 2014 Stanford University and the Authors.           *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -29,41 +29,31 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
+/**
+ * This tests the Reference implementation of ExampleForce.
+ */
+
+#include "MyIntegrator.h"
 #include "openmm/internal/AssertionUtilities.h"
 #include "openmm/Context.h"
-#include "openmm/CustomExternalForce.h"
-#include "openmm/HarmonicBondForce.h"
-#include "openmm/NonbondedForce.h"
+#include "openmm/Platform.h"
 #include "openmm/System.h"
-#include "MyIntegrator.h"
-//#include "openmm/LangevinIntegrator.h"
-//#include "openmm/SimTKOpenMMRealType.h"
-#include "openmm/reference/SimTKOpenMMUtilities.h"
-//#include "openmm/library/
-#include "sfmt/SFMT.h"
+#include "openmm/VerletIntegrator.h"
+#include "openmm/HarmonicBondForce.h"
+#include <cmath>
 #include <iostream>
 #include <vector>
-#include <torch/torch.h>
-#include <chrono>
-#define KILO    	(1e3)
-#define BOLTZMANN	(1.380649e-23)
-#define AVOGADRO        (6.02214076e23)
-#define RGAS    	(BOLTZMANN*AVOGADRO)
-#define BOLTZ           (RGAS/KILO)
+#include "torch/torch.h"
 using namespace TorchIntegratorPlugin;
 using namespace OpenMM;
 using namespace std;
 
-const double TOL = 1e-5;
-
-
-extern "C" OPENMM_EXPORT void registerTorchIntegratorReferenceKernelFactories();
-Platform& platform = Platform::getPlatformByName("Reference");
+extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories();
 
 void testIntegrator() {
     // Create a chain of particles connected by bonds.
-    cout << "Start testIntegrationCPU" << endl;
-    const int numBonds = 10;
+    cout << "Start testIntegration" << endl;
+    const int numBonds = 10000;
     const int numParticles = numBonds+1;
     System system;
     vector<Vec3> positions(numParticles);
@@ -77,42 +67,46 @@ void testIntegrator() {
         force->addBond(i, i+1, 1.0+sin(0.8*i), cos(0.3*i));
     
     // Compute the forces and energy.
-    cout << "make integrator" << endl;
+
     MyIntegrator integ(1.0, 1.0,1.0);
 
+    Platform& platform = Platform::getPlatformByName("CUDA");
     Context context(system, integ, platform);
     context.setPositions(positions);
     State statebefore = context.getState(State::Energy | State::Forces | State::Positions);
-    auto input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCPU).dtype(torch::kFloat64));
+    //torch::Tensor input = torch::randn({numParticles*3}, torch::TensorOptions().device(torch::kCUDA,1));
+    auto input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCUDA,0));
 
-    unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<double>());
+    unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<float>());
+    cout << "here1" <<endl; 
     integ.torchset(ptr, numParticles);
+    cout << "here2" <<endl; 
     State stateset = context.getState(State::Energy | State::Forces | State::Positions);
+    cout << "here3" <<endl; 
     torch::Tensor cpu_input = input.to(torch::kCPU);
     double diffpos = 0.0;
     double sumposstate = 0.0;
     double sumposinput = 0.0;
-    cout << "here?" <<endl; 
     for (int i = 0; i < numParticles; i++) {
 	for (int j = 0; j < 3; j++) {
-	    diffpos += abs(stateset.getPositions()[i][j]) - *cpu_input[3*i+j].abs().data_ptr<double>();
+	    diffpos += abs(stateset.getPositions()[i][j]) - *cpu_input[3*i+j].abs().data_ptr<float>();
             sumposstate += abs(stateset.getPositions()[i][j]);
-	    sumposinput += *cpu_input[3*i+j].abs().data_ptr<double>();
+	    sumposinput += *cpu_input[3*i+j].abs().data_ptr<float>();
 	}
     }
     cout << "diff pos: " << diffpos << endl;
     cout << "sumposstate: " << sumposstate << endl;
     cout << "sumposinput: " << sumposinput << endl;
 
-    ASSERT_EQUAL_TOL(0.0, diffpos, 1e-5);
+    ASSERT_EQUAL_TOL(diffpos, 0.0, 1e-5);
     ASSERT_EQUAL_TOL(sumposstate, sumposinput, 1e-5);
 
     //update
     integ.torchupdate();
 
     //Torchget
-    torch::Tensor output = torch::zeros({numParticles*3}, torch::TensorOptions().device(torch::kCPU).dtype(torch::kFloat64));
-    unsigned long int fptr = reinterpret_cast<unsigned long int>(output.data_ptr<double>());
+    torch::Tensor output = torch::zeros({numParticles*3}, torch::TensorOptions().device(torch::kCUDA));
+    unsigned long int fptr = reinterpret_cast<unsigned long int>(output.data_ptr<float>());
 
     integ.torchget(fptr, numParticles);
 
@@ -123,28 +117,26 @@ void testIntegrator() {
     double sumforcestate = 0.0;
     double sumforceoutput = 0.0;
     //double scale = 1.0/(double) 0x100000000LL;
-    double scale = 1.0;///(double) 0x100000000LL;
     for (int i = 0; i < numParticles; i++){
-	//cout <<"0: "  << statebefore.getForces()[i][0] << " <- " << stateget.getForces()[i][0] << " <- " << *cpu_output[3*i].data_ptr<double>() << " scale " << *cpu_output[3*i].data_ptr<double>()*scale << endl;
-	//cout <<"1: "  << statebefore.getForces()[i][1] << " <- " << stateget.getForces()[i][1] << " <- " << *cpu_output[3*i+1].data_ptr<double>() << endl;
-	//cout <<"2: "  << statebefore.getForces()[i][2] << " <- " << stateget.getForces()[i][2] << " <- " << *cpu_output[3*i+2].data_ptr<double>() << endl;
+	//cout <<"0: "  << statebefore.getForces()[i][0] << " <- " << stateget.getForces()[i][0] << " <- " << *cpu_output[3*i].data_ptr<float>() << endl;
+	//cout <<"1: "  << statebefore.getForces()[i][1] << " <- " << stateget.getForces()[i][1] << " <- " << *cpu_output[3*i+1].data_ptr<float>() << endl;
+	//cout <<"2: "  << statebefore.getForces()[i][2] << " <- " << stateget.getForces()[i][2] << " <- " << *cpu_output[3*i+2].data_ptr<float>() << endl;
         for (int j = 0; j < 3; j++){
-	    diffforce += abs(stateget.getForces()[i][j]) - *cpu_output[3*i+j].abs().data_ptr<double>();
+	    diffforce += abs(stateget.getForces()[i][j]) - *cpu_output[3*i+j].abs().data_ptr<float>();
 	    sumforcestate += abs(stateget.getForces()[i][j]);
-	    sumforceoutput += *cpu_output[3*i+j].abs().data_ptr<double>();
+	    sumforceoutput += *cpu_output[3*i+j].abs().data_ptr<float>();
 	}
     }
     cout << "diff force: " << diffforce << endl;
     cout << "sumforcestate: " << sumforcestate << endl;
     cout << "sumforceoutptu: " << sumforceoutput << endl;
-    ASSERT_EQUAL_TOL(0.0, diffforce, 1e-5);
+    ASSERT_EQUAL_TOL(diffforce, 0.0, 1e-5);
     ASSERT_EQUAL_TOL(sumforcestate, sumforceoutput, 1e-5);
 }
-
-
-
-
 void testSingleBond(){
+    cout << "testSingleBond" << endl;
+
+    Platform& platform = Platform::getPlatformByName("CUDA");
     System system;
     system.addParticle(1.0);
     system.addParticle(1.0);
@@ -169,51 +161,52 @@ void testSingleBond(){
 	ASSERT_EQUAL_VEC(Vec3(0, 0.8*(1.5-(pos[0][1]-pos[1][1])), 0), forces[0], 1e-5);
 	ASSERT_EQUAL_VEC(Vec3(0, 0.8*(-1.5-(pos[1][1]-pos[0][1])), 0), forces[1], 1e-5);
     }
-    for (int i = 0; i < 10; i++){
-    auto input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCPU).dtype(torch::kFloat64));
-    unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<double>());
+    for (int i = 0; i < 5; i++){
+    auto input = torch::randn({numParticles*3,}, torch::TensorOptions().device(torch::kCUDA,0).dtype(torch::kFloat));
+    unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<float>());
     integ.torchset(ptr, numParticles);
-    State stateset = context.getState(State::Energy | State::Forces | State::Positions);
+    cout << "here " << "5" << endl;
+    //State stateset = context.getState(State::Energy | State::Forces | State::Positions);
+    cout << "here " << "6" << endl;
     torch::Tensor cpu_input = input.to(torch::kCPU);
-
-    {
-	Vec3 dvec;
-	for (int i = 0; i < 3; i++){
-	dvec[i]=*cpu_input[3+i].data_ptr<double>()-*cpu_input[i].data_ptr<double>();
-	}
-	double dsca = sqrt(dvec.dot(dvec));
-	double force = - 0.8*(dsca-1.5);
-	Vec3 force0 = -(dvec/dsca)*force;
-	Vec3 force1 = (dvec/dsca)*force;
-	vector<Vec3> forces  = stateset.getForces();
-	/*
-	cout << dvec << " and " << dsca << " or " << force<< endl;
-	cout << "Force0: " << force0 << "  " << forces[0] <<endl;
-	cout << "Force1: " << force1 << "  " << forces[0] <<endl;
-	*/
-	ASSERT_EQUAL_VEC(force0, forces[0], 1e-5);
-	ASSERT_EQUAL_VEC(force1, forces[1], 1e-5);
-
-    }
+//
+//    {
+//	Vec3 dvec;
+//	for (int i = 0; i < 3; i++){
+//	dvec[i]=*cpu_input[3+i].data_ptr<float>()-*cpu_input[i].data_ptr<float>();
+//	}
+//	double dsca = sqrt(dvec.dot(dvec));
+//	double tforce = - 0.8*(dsca-1.5);
+//	Vec3 force0 = -(dvec/dsca)*tforce;
+//	Vec3 force1 = (dvec/dsca)*tforce;
+//	vector<Vec3> forces  = stateset.getForces();
+//	/*
+//	cout << dvec << " and " << dsca << " or " << force<< endl;
+//	cout << "Force0: " << force0 << "  " << forces[0] <<endl;
+//	cout << "Force1: " << force1 << "  " << forces[0] <<endl;
+//	*/
+//	ASSERT_EQUAL_VEC(force0, forces[0], 1e-5);
+//	ASSERT_EQUAL_VEC(force1, forces[1], 1e-5);
+//	cout <<"Success: " << i << endl;
+//    }
     }
 
 }
 
-
-
-
-int main() {
+int main(int argc, char* argv[]) {
     try {
-        registerTorchIntegratorReferenceKernelFactories();
-	testIntegrator();
-	testSingleBond();
-        //initializeTests();
-        //runPlatformTests();
+        registerTorchIntegratorCudaKernelFactories();
+        if (argc > 1)
+            Platform::getPlatformByName("CUDA").setPropertyDefaultValue("CudaPrecision", string(argv[1]));
+        testIntegrator();
+        //testIntegrator();
+	//testSingleBond();
+	//testSingleBond();
     }
-    catch(const exception& e) {
-        cout << "exception: " << e.what() << endl;
+    catch(const std::exception& e) {
+        std::cout << "exception: " << e.what() << std::endl;
         return 1;
     }
-    cout << "Done" << endl;
+    std::cout << "Done" << std::endl;
     return 0;
 }

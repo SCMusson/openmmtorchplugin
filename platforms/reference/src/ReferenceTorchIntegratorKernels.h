@@ -63,8 +63,8 @@ public:
      * @param integrator the MyIntegrator this kernel is being used for
      */
     void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator);
-    void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles);
-    void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out, int numParticles);
+    void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset);
+    void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int forces_out, int numParticles, int offset);
     
     /**
      * Compute the kinetic energy.
