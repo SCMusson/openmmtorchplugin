@@ -20,7 +20,7 @@ class TestMyIntegrator(unittest.TestCase):
         print('multi')
         batch_size = 8
         data_dir = os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'app', 'data')
-        pdb = PDBFile(os.path.join(data_dir, 'test.pdb'))
+        pdb = PDBFile(os.path.join(data_dir, 'example.pdb'))
         forcefield = ForceField('amber99sb.xml', 'tip3p.xml')
         system = forcefield.createSystem(pdb.topology, nonbondedMethod=LJPME, nonbondedCutoff=1*nanometer, constraints=HBonds, ewaldErrorTolerance=1e-4)
         platform = Platform.getPlatformByName('CUDA')
@@ -33,6 +33,17 @@ class TestMyIntegrator(unittest.TestCase):
         simulation.context.setPositions(input)
         output =  simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
         pbvectors = simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value
+        
+        '''
+        tinput = torch.zeros((batch_size,*output.shape), device=torch.device('cuda'), dtype=torch.float)
+        data = np.load('app/data/0.npy')
+        tinput[-1] = torch.tensor(data)/10
+        toutput = torch.zeros((batch_size, *output.shape), device=torch.device('cuda'), dtype=torch.float)
+        tenergy = torch.zeros((batch_size,), device=torch.device('cpu'), dtype=torch.double)
+        #integrator.torchMultiStructure(tinput.data_ptr(), toutput.data_ptr(), n_particles, batch_size)
+        integrator.torchMultiStructure(tinput.data_ptr(), toutput.data_ptr(), tenergy.data_ptr(), n_particles, batch_size)
+        embed(header='44')
+        '''
         '''
         tinput = torch.randn((batch_size,*output.shape), device=torch.device('cuda'), dtype=torch.float)
         toutput = torch.zeros((batch_size, *output.shape), device=torch.device('cuda'), dtype=torch.float)
