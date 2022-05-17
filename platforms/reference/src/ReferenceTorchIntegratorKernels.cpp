@@ -42,7 +42,7 @@ static ReferenceConstraints& extractConstraints(ContextImpl& context) {
     return *data->constraints;
 }
 static double computeShiftedKineticEnergy(ContextImpl& context, vector<double>& masses, double timeShift) {
-    int numParticles = context.getSystem().getNumParticles();
+    /*int numParticles = context.getSystem().getNumParticles();
     vector<Vec3> shiftedVel(numParticles);
     context.computeShiftedVelocities(timeShift, shiftedVel);
     double energy = 0.0;
@@ -50,6 +50,8 @@ static double computeShiftedKineticEnergy(ContextImpl& context, vector<double>& 
         if (masses[i] > 0)
             energy += masses[i]*(shiftedVel[i].dot(shiftedVel[i]));
     return 0.5*energy;
+    */
+    return 0.0;
 }
 
 
