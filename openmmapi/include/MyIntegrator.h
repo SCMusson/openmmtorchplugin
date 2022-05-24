@@ -99,7 +99,7 @@ public:
     void torchset(unsigned long int positions_in, int numParticles);
     void torchget(unsigned long int forces_out, int numParticles);
     void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, int numParticles, int batch_size);
-    void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size);
+    void torchMultiStructureE(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size);
     void torchupdate();
 protected:
     /**

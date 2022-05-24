@@ -88,7 +88,7 @@ void MyIntegrator::torchMultiStructure(unsigned long int positions_in, unsigned 
 	kernel.getAs<IntegrateMyStepKernel>().executePGet(*context, *this, forces_out, numParticles, i);
     }
 }
-void MyIntegrator::torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size){
+void MyIntegrator::torchMultiStructureE(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size){
     double * eptr = reinterpret_cast<double*>(energy_out);
     for (int i = 0; i < batch_size; i++) {
         kernel.getAs<IntegrateMyStepKernel>().executePSet(*context, *this, positions_in, numParticles, i);

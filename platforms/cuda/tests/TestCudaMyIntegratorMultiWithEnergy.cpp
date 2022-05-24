@@ -89,7 +89,7 @@ void testIntegrator() {
     unsigned long int ptr = reinterpret_cast<unsigned long int>(input.data_ptr<float>());
     unsigned long int fptr = reinterpret_cast<unsigned long int>(output.data_ptr<float>());
     unsigned long int eptr = reinterpret_cast<unsigned long int>(energy_out.data_ptr<double>());
-    integ.torchMultiStructure(ptr, fptr, eptr, numParticles, batchSize);
+    integ.torchMultiStructureE(ptr, fptr, eptr, numParticles, batchSize);
     torch::Tensor cpu_input = input.to(torch::kCPU);
     torch::Tensor cpu_output = output.to(torch::kCPU);
     torch::Tensor cpu_energy = energy_out.to(torch::kCPU);
