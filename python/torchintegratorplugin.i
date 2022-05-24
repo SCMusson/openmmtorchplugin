@@ -1,6 +1,6 @@
 %module torchintegratorplugin
 
-%import(module="simtk.openmm") "swig/OpenMMSwigHeaders.i"
+%import(module="simtk.openmm") "swig/myOpenMMSwigHeaders.i"
 %include "swig/typemaps.i"
 
 /*
@@ -68,7 +68,7 @@ public:
 
     void step(int steps);
 
-    
+
     void torchset(unsigned long int in, int numParticles);
     void torchget(unsigned long int out, int numParticles);
     void torchupdate();
