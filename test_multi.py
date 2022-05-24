@@ -1,16 +1,16 @@
 
 import torch
 import unittest
-from parameterized import parameterized
+#from parameterized import parameterized
 import os
 import sys
 import numpy as np
 from openmm.app import *
 from openmm import *
 from openmm.unit import *
-from IPython import embed
+#from IPython import embed
 from torchintegratorplugin import MyIntegrator
-from torch.utils.cpp_extension import load
+#from torch.utils.cpp_extension import load
 
 #getpointer = load(name='torch_extension', sources=['torch_extension.cpp'])
 
@@ -68,7 +68,7 @@ class TestMyIntegrator(unittest.TestCase):
         energy = 0
         toutput = torch.zeros((batch_size, *output.shape), device=torch.device('cuda'), dtype=torch.float)
         for i in range(10000):
-            integrator.torchMultiStructure(tinput.data_ptr(), toutput.data_ptr(), tenergy.data_ptr(), n_particles, batch_size)
+            integrator.torchMultiStructureE(tinput.data_ptr(), toutput.data_ptr(), tenergy.data_ptr(), n_particles, batch_size)
             if i==0:
                 energy = tenergy.mean()
                 assert energy>-50000
