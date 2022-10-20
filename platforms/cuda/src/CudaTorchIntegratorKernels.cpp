@@ -28,21 +28,20 @@ using namespace std;
 
 
 CudaIntegrateMyStepKernel::~CudaIntegrateMyStepKernel(){
-    cu.setAsCurrent();
 }
 
 void CudaIntegrateMyStepKernel::initialize(const System& system, const MyIntegrator& integrator){
     cu.getPlatformData().initializeContexts(system);
     cu.setAsCurrent();
-    cu.getIntegrationUtilities().initRandomNumberGenerator(integrator.getRandomNumberSeed());
+    //cu.getIntegrationUtilities().initRandomNumberGenerator(integrator.getRandomNumberSeed());
     map<string, string> defines;
-    CUmodule program = cu.createModule(CudaTorchIntegratorKernelSources::torchIntegrator, defines);
+    CUmodule program = cu.createModule(CudaTorchIntegratorKernelSources::torchIntegrator, defines, "");
     setInputsKernel = cu.getKernel(program, "setInputs");
     getForcesKernel = cu.getKernel(program, "getForces");
 }
 
 void CudaIntegrateMyStepKernel::execute(ContextImpl&, const MyIntegrator& integrator){
-   return;
+    cu.setAsCurrent();
 }
 
 void CudaIntegrateMyStepKernel::executePSet(ContextImpl& context, const MyIntegrator& integrator, unsigned long int in, int numParticles, int offset){

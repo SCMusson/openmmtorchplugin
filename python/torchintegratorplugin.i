@@ -52,19 +52,19 @@ namespace TorchIntegratorPlugin {
 
 class MyIntegrator : public OpenMM::Integrator {
 public:
-    MyIntegrator(double temperature, double frictionCoeff, double stepSize);
+    MyIntegrator();//double temperature, double frictionCoeff, double stepSize);
 
-    double getTemperature() const;
+    //double getTemperature() const;
 
-    void setTemperature(double temp);
+    //void setTemperature(double temp);
 
-    double getFriction() const;
+    //double getFriction() const;
 
-    void setFriction(double coeff);
+    //void setFriction(double coeff);
 
-    int getRandomNumberSeed() const;
+    //int getRandomNumberSeed() const;
 
-    void setRandomNumberSeed(int seed);
+    //void setRandomNumberSeed(int seed);
 
     void step(int steps);
 

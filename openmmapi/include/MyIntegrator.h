@@ -34,43 +34,43 @@ public:
      * @param frictionCoeff  the friction coefficient which couples the system to the heat bath (in inverse picoseconds)
      * @param stepSize       the step size with which to integrate the system (in picoseconds)
      */
-    MyIntegrator(double temperature, double frictionCoeff, double stepSize);
+    MyIntegrator();//double temperature, double frictionCoeff, double stepSize);
     /**
      * Get the temperature of the heat bath (in Kelvin).
      *
      * @return the temperature of the heat bath, measured in Kelvin
      */
-    double getTemperature() const {
-        return temperature;
-    }
+//    double getTemperature() const {
+//        return temperature;
+//    }
     /**
      * Set the temperature of the heat bath (in Kelvin).
      *
      * @param temp    the temperature of the heat bath, measured in Kelvin
      */
-    void setTemperature(double temp);
+//    void setTemperature(double temp);
     /**
      * Get the friction coefficient which determines how strongly the system is coupled to
      * the heat bath (in inverse ps).
      *
      * @return the friction coefficient, measured in 1/ps
      */
-    double getFriction() const {
-        return friction;
-    }
+//    double getFriction() const {
+//        return friction;
+//    }
     /**
      * Set the friction coefficient which determines how strongly the system is coupled to
      * the heat bath (in inverse ps).
      *
      * @param coeff    the friction coefficient, measured in 1/ps
      */
-    void setFriction(double coeff);
+//    void setFriction(double coeff);
     /**
      * Get the random number seed.  See setRandomNumberSeed() for details.
      */
-    int getRandomNumberSeed() const {
-        return randomNumberSeed;
-    }
+//    int getRandomNumberSeed() const {
+//        return randomNumberSeed;
+//    }
     /**
      * Set the random number seed.  The precise meaning of this parameter is undefined, and is left up
      * to each Platform to interpret in an appropriate way.  It is guaranteed that if two simulations
@@ -83,9 +83,9 @@ public:
      * is created from this Force. This is done to ensure that each Context receives unique random seeds
      * without you needing to set them explicitly.
      */
-    void setRandomNumberSeed(int seed) {
-        randomNumberSeed = seed;
-    }
+//    void setRandomNumberSeed(int seed) {
+//        randomNumberSeed = seed;
+//    }
     /**
      * Advance a simulation through time by taking a series of time steps.
      * 
@@ -125,12 +125,12 @@ protected:
      * Get the time interval by which velocities are offset from positions.  This is used to
      * adjust velocities when setVelocitiesToTemperature() is called on a Context.
      */
-    double getVelocityTimeOffset() const {
-        return getStepSize()/2;
-    }
+//    double getVelocityTimeOffset() const {
+//        return getStepSize()/2;
+//    }
 private:
-    double temperature, friction;
-    int randomNumberSeed;
+//    double temperature, friction;
+//    int randomNumberSeed;
     OpenMM::Kernel kernel;
 };
 

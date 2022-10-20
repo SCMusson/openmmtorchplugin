@@ -22,12 +22,12 @@ using namespace TorchIntegratorPlugin;
 using std::string;
 using std::vector;
 
-MyIntegrator::MyIntegrator(double temperature, double frictionCoeff, double stepSize) {
-    setTemperature(temperature);
-    setFriction(frictionCoeff);
-    setStepSize(stepSize);
-    setConstraintTolerance(1e-5);
-    setRandomNumberSeed(0);
+MyIntegrator::MyIntegrator(){//double temperature, double frictionCoeff, double stepSize) {
+ //   setTemperature(temperature);
+ //   setFriction(frictionCoeff);
+ //   setStepSize(stepSize);
+ //   setConstraintTolerance(1e-5);
+ //   setRandomNumberSeed(0);
 }
 
 void MyIntegrator::initialize(OpenMM::ContextImpl& contextRef) {
@@ -58,7 +58,7 @@ vector<string> MyIntegrator::getKernelNames() {
 }
 
 double MyIntegrator::computeKineticEnergy() {
-    return kernel.getAs<IntegrateMyStepKernel>().computeKineticEnergy(*context, *this);
+    return 0.0;// kernel.getAs<IntegrateMyStepKernel>().computeKineticEnergy(*context, *this);
 }
 
 void MyIntegrator::step(int steps) {
