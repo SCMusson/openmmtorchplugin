@@ -1,5 +1,5 @@
-#ifndef OPENMM_WINDOWSEXPORTTORCHINTEGRATOR_H_
-#define OPENMM_WINDOWSEXPORTTORCHINTEGRATOR_H_
+#ifndef OPENMM_WINDOWSEXPORTTORCHEXPOSEDINTEGRATOR_H_
+#define OPENMM_WINDOWSEXPORTTORCHEXPOSEDINTEGRATOR_H_
 
 /*
  * Shared libraries are messy in Visual Studio. We have to distinguish three
@@ -12,7 +12,7 @@
  *       being compiled with the expectation of linking with the
  *       OpenMM static library (nothing special needed)
  * In the CMake script for building this library, we define one of the symbols
- *     TORCHINTEGRATOR_BUILDING_{SHARED|STATIC}_LIBRARY
+ *     TORCHEXPOSEDINTEGRATOR_BUILDING_{SHARED|STATIC}_LIBRARY
  * Client code normally has no special symbol defined, in which case we'll
  * assume it wants to use the shared library. However, if the client defines
  * the symbol OPENMM_USE_STATIC_LIBRARIES we'll suppress the dllimport so
@@ -27,15 +27,15 @@
     #pragma warning(disable:4996)
     // Keep MS VC++ quiet about lack of dll export of private members.
     #pragma warning(disable:4251)
-    #if defined(TORCHINTEGRATOR_BUILDING_SHARED_LIBRARY)
-        #define OPENMM_EXPORT_TORCHINTEGRATOR __declspec(dllexport)
-    #elif defined(TORCHINTEGRATOR_BUILDING_STATIC_LIBRARY) || defined(TORCHINTEGRATOR_USE_STATIC_LIBRARIES)
-        #define OPENMM_EXPORT_TORCHINTEGRATOR
+    #if defined(TORCHEXPOSEDINTEGRATOR_BUILDING_SHARED_LIBRARY)
+        #define OPENMM_EXPORT_TORCHEXPOSEDINTEGRATOR __declspec(dllexport)
+    #elif defined(TORCHEXPOSEDINTEGRATOR_BUILDING_STATIC_LIBRARY) || defined(TORCHEXPOSEDINTEGRATOR_USE_STATIC_LIBRARIES)
+        #define OPENMM_EXPORT_TORCHEXPOSEDINTEGRATOR
     #else
-        #define OPENMM_EXPORT_TORCHINTEGRATOR __declspec(dllimport)   // i.e., a client of a shared library
+        #define OPENMM_EXPORT_TORCHEXPOSEDINTEGRATOR __declspec(dllimport)   // i.e., a client of a shared library
     #endif
 #else
-    #define OPENMM_EXPORT_TORCHINTEGRATOR // Linux, Mac
+    #define OPENMM_EXPORT_TORCHEXPOSEDINTEGRATOR // Linux, Mac
 #endif
 
-#endif // OPENMM_WINDOWSEXPORTTORCHINTEGRATOR_H_
+#endif // OPENMM_WINDOWSEXPORTTORCHEXPOSEDINTEGRATOR_H_

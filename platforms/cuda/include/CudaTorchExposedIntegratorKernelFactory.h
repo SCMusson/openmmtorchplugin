@@ -1,5 +1,6 @@
-#ifndef OPENMM_CUDATORCHINTEGRATORKERNELSOURCES_H_
-#define OPENMM_CUDATORCHINTEGRATORKERNELSOURCES_H_
+#ifndef OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELFACTORY_H_
+#define OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELFACTORY_H_
+
 
 /*---------------------------------------------------------------------------------------------------
  * Copyright (c) 2022 Samuel C. Musson
@@ -13,22 +14,19 @@
  * You should have received a copy of the GNU General Public License along with openmmtorchplugin ;
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 *-------------------------------------------------------------------------------- */
+#include "openmm/KernelFactory.h"
 
-#include <string>
-
-namespace TorchIntegratorPlugin {
+namespace OpenMM {
 
 /**
- * This class is a central holding place for the source code of CUDA kernels.
- * The CMake build script inserts declarations into it based on the .cu files in the
- * kernels subfolder.
+ * This KernelFactory creates kernels for the CUDA implementation of the TorchExposedIntegrator plugin.
  */
 
-class CudaTorchIntegratorKernelSources {
+class CudaTorchExposedIntegratorKernelFactory : public KernelFactory {
 public:
-@CUDA_FILE_DECLARATIONS@
+    KernelImpl* createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const;
 };
 
-} // namespace TorchIntegratorPlugin
+} // namespace OpenMM
 
-#endif /*OPENMM_CUDATORCHINTEGRATORKERNELSOURCES_H_*/
+#endif /*OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELFACTORY_H_*/

@@ -1,4 +1,4 @@
-OpenMM TorchIntegrator Plugin
+OpenMM TorchExposedIntegrator Plugin
 =====================
 
 This project is built from the OpenMM Example plugin and designed for [OpenMM](https://simtk.org/home/openmm)

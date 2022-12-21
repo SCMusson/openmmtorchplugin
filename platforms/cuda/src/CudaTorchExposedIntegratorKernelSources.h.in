@@ -1,3 +1,5 @@
+#ifndef OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELSOURCES_H_
+#define OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELSOURCES_H_
 
 /*---------------------------------------------------------------------------------------------------
  * Copyright (c) 2022 Samuel C. Musson
@@ -11,8 +13,22 @@
  * You should have received a copy of the GNU General Public License along with openmmtorchplugin ;
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 *-------------------------------------------------------------------------------- */
-#include "CudaTorchIntegratorKernelSources.h"
 
-using namespace TorchIntegratorPlugin;
-using namespace std;
+#include <string>
 
+namespace TorchExposedIntegratorPlugin {
+
+/**
+ * This class is a central holding place for the source code of CUDA kernels.
+ * The CMake build script inserts declarations into it based on the .cu files in the
+ * kernels subfolder.
+ */
+
+class CudaTorchExposedIntegratorKernelSources {
+public:
+@CUDA_FILE_DECLARATIONS@
+};
+
+} // namespace TorchExposedIntegratorPlugin
+
+#endif /*OPENMM_CUDATORCHEXPOSEDINTEGRATORKERNELSOURCES_H_*/

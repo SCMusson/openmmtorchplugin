@@ -1,13 +1,13 @@
 #---------------------------------------------------
-# OpenMM TorchIntegrator Plugin CUDA Platform
+# OpenMM TorchExposedIntegrator Plugin CUDA Platform
 #----------------------------------------------------
 
 # Collect up information about the version of the OpenMM library we're building
 # and make it available to the code so it can be built into the binaries.
 
-SET(TORCHINTEGRATOR_CUDA_LIBRARY_NAME TorchIntegratorPluginCUDA)
+SET(TORCHEXPOSEDINTEGRATOR_CUDA_LIBRARY_NAME TorchExposedIntegratorPluginCUDA)
 
-SET(SHARED_TARGET ${TORCHINTEGRATOR_CUDA_LIBRARY_NAME})
+SET(SHARED_TARGET ${TORCHEXPOSEDINTEGRATOR_CUDA_LIBRARY_NAME})
 
 
 # These are all the places to search for header files which are
@@ -39,7 +39,7 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_BINARY_DIR}/platforms/cuda/src)
 # Set variables needed for encoding kernel sources into a C++ class
 
 SET(CUDA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-SET(CUDA_SOURCE_CLASS CudaTorchIntegratorKernelSources)
+SET(CUDA_SOURCE_CLASS CudaTorchExposedIntegratorKernelSources)
 SET(CUDA_KERNELS_CPP ${CMAKE_CURRENT_BINARY_DIR}/src/${CUDA_SOURCE_CLASS}.cpp)
 SET(CUDA_KERNELS_H ${CMAKE_CURRENT_BINARY_DIR}/src/${CUDA_SOURCE_CLASS}.h)
 SET(SOURCE_FILES ${SOURCE_FILES} ${CUDA_KERNELS_CPP} ${CUDA_KERNELS_H})
@@ -61,7 +61,7 @@ ADD_LIBRARY(${SHARED_TARGET} SHARED ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${AP
 TARGET_LINK_LIBRARIES(${SHARED_TARGET} ${CUDA_LIBRARIES})
 TARGET_LINK_LIBRARIES(${SHARED_TARGET} OpenMM)
 TARGET_LINK_LIBRARIES(${SHARED_TARGET} OpenMMCUDA)
-TARGET_LINK_LIBRARIES(${SHARED_TARGET} ${TORCHINTEGRATOR_LIBRARY_NAME})
+TARGET_LINK_LIBRARIES(${SHARED_TARGET} ${TORCHEXPOSEDINTEGRATOR_LIBRARY_NAME})
 SET_TARGET_PROPERTIES(${SHARED_TARGET} PROPERTIES
     COMPILE_FLAGS "-DOPENMM_BUILDING_SHARED_LIBRARY ${EXTRA_COMPILE_FLAGS}"
     LINK_FLAGS "${EXTRA_COMPILE_FLAGS}")

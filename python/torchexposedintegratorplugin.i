@@ -1,7 +1,11 @@
-%module torchintegratorplugin
+%module torchexposedintegratorplugin
 
-%import(module="simtk.openmm") "swig/myOpenMMSwigHeaders.i"
+%import(module="simtk.openmm") "swig/OpenMMSwigHeaders.i"
 %include "swig/typemaps.i"
+
+
+
+
 
 /*
  * The following lines are needed to handle std::vector.
@@ -16,7 +20,7 @@ namespace std {
 };
 
 %{
-#include "MyIntegrator.h"
+#include "TorchExposedIntegrator.h"
 #include "OpenMM.h"
 #include "OpenMMAmoeba.h"
 #include "OpenMMDrude.h"
@@ -47,25 +51,12 @@ import openmm.unit as unit
 }
 
 
-namespace TorchIntegratorPlugin {
+namespace TorchExposedIntegratorPlugin {
 
 
-class MyIntegrator : public OpenMM::Integrator {
+class TorchExposedIntegrator : public OpenMM::Integrator {
 public:
-    MyIntegrator(double temperature, double frictionCoeff, double stepSize);
-
-    double getTemperature() const;
-
-    void setTemperature(double temp);
-
-    double getFriction() const;
-
-    void setFriction(double coeff);
-
-    int getRandomNumberSeed() const;
-
-    void setRandomNumberSeed(int seed);
-
+    TorchExposedIntegrator();
     void step(int steps);
 
 
@@ -74,17 +65,6 @@ public:
     void torchupdate();
     void torchMultiStructure(unsigned long int positions_in, unsigned long int forces_out, int numParticles, int batch_size);
     void torchMultiStructureE(unsigned long int positions_in, unsigned long int forces_out, unsigned long int energy_out, int numParticles, int batch_size);
-/*
-    %extend {
-        static TorchIntegratorPlugin::MyIntegrator& cast(OpenMM::Integrator& integrator) {
-            return dynamic_cast<TorchIntegratorPlugin::MyIntegrator&>(integrator);
-        }
-
-        static bool isinstance(OpenMM::Integrator& integrator){
-            return (dynamic_cast<TorchIntegratorPlugin::MyIntegrator*>(&integrator) != NULL);
-        }
-    }
-*/
 };
 
 

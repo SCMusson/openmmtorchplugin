@@ -13,13 +13,12 @@
 *-------------------------------------------------------------------------------- */
 #include <exception>
 
-#include "CudaTorchIntegratorKernelFactory.h"
-#include "CudaTorchIntegratorKernels.h"
-#include "openmm/internal/windowsExport.h"
+#include "CudaTorchExposedIntegratorKernelFactory.h"
+#include "CudaTorchExposedIntegratorKernels.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/OpenMMException.h"
 
-using namespace TorchIntegratorPlugin;
+using namespace TorchExposedIntegratorPlugin;
 using namespace OpenMM;
 
 extern "C" OPENMM_EXPORT void registerPlatforms() {
@@ -28,15 +27,14 @@ extern "C" OPENMM_EXPORT void registerPlatforms() {
 extern "C" OPENMM_EXPORT void registerKernelFactories() {
     try {
         Platform& platform = Platform::getPlatformByName("CUDA");
-        CudaTorchIntegratorKernelFactory* factory = new CudaTorchIntegratorKernelFactory();
-        platform.registerKernelFactory(IntegrateMyStepKernel::Name(), factory);
+        CudaTorchExposedIntegratorKernelFactory* factory = new CudaTorchExposedIntegratorKernelFactory();
+        platform.registerKernelFactory(IntegrateTorchExposedStepKernel::Name(), factory);
     }
     catch (std::exception ex) {
-        // Ignore
     }
 }
 
-extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories() {
+extern "C" OPENMM_EXPORT void registerTorchExposedIntegratorCudaKernelFactories() {
     try {
         Platform::getPlatformByName("CUDA");
     }
@@ -46,9 +44,9 @@ extern "C" OPENMM_EXPORT void registerTorchIntegratorCudaKernelFactories() {
     registerKernelFactories();
 }
 
-KernelImpl* CudaTorchIntegratorKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
+KernelImpl* CudaTorchExposedIntegratorKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
     CudaContext& cu = *static_cast<CudaPlatform::PlatformData*>(context.getPlatformData())->contexts[0];
-    if (name == IntegrateMyStepKernel::Name())
-        return new CudaIntegrateMyStepKernel(name, platform, cu);
+    if (name == IntegrateTorchExposedStepKernel::Name())
+        return new CudaIntegrateTorchExposedStepKernel(name, platform, cu);
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }

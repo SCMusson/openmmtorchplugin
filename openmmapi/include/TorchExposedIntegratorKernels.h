@@ -1,5 +1,5 @@
-#ifndef TORCHINTEGRATOR_KERNELS_H_
-#define TORCHINTEGRATOR_KERNELS_H_
+#ifndef TORCHEXPOSEDINTEGRATOR_KERNELS_H_
+#define TORCHEXPOSEDINTEGRATOR_KERNELS_H_
 /*---------------------------------------------------------------------------------------------------
  * Copyright (c) 2022 Samuel C. Musson
  *
@@ -14,48 +14,49 @@
 *-------------------------------------------------------------------------------- */
 
 
-#include "MyIntegrator.h"
+#include "TorchExposedIntegrator.h"
 #include "openmm/KernelImpl.h"
 #include "openmm/Platform.h"
 #include "openmm/System.h"
 #include <string>
 
-namespace TorchIntegratorPlugin {
+namespace TorchExposedIntegratorPlugin {
 
-class IntegrateMyStepKernel : public OpenMM::KernelImpl {
+class IntegrateTorchExposedStepKernel : public OpenMM::KernelImpl {
 public:
     static std::string Name() {
-        return "IntegrateMyStep";
+        return "IntegrateTorchExposedStep";
     }
-    IntegrateMyStepKernel(std::string name, const OpenMM::Platform& platform) : OpenMM::KernelImpl(name, platform) {
+    IntegrateTorchExposedStepKernel(std::string name, const OpenMM::Platform& platform) : OpenMM::KernelImpl(name, platform) {
     }
     /**
      * Initialize the kernel.
      * 
      * @param system     the System this kernel will be applied to
-     * @param integrator the MyIntegrator this kernel will be used for
+     * @param integrator the TorchExposedIntegrator this kernel will be used for
      */
-    virtual void initialize(const OpenMM::System& system, const MyIntegrator& integrator) = 0;
+    virtual void initialize(const OpenMM::System& system, const TorchExposedIntegrator& integrator) = 0;
     /**
      * Execute the kernel.
      * 
      * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
+     * @param integrator the TorchExposedIntegrator this kernel is being used for
      */
-    virtual void execute(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
-    virtual void executePSet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset = 0) = 0;
-    virtual void executePGet(OpenMM::ContextImpl& context, const MyIntegrator& integrator, unsigned long int out_forces, int numParticles, int offset = 0) = 0;
 
-    /**
+    /*
+    virtual void execute(OpenMM::ContextImpl& context, const TorchExposedIntegrator& integrator) = 0;
+    */
+    virtual void executePSet(OpenMM::ContextImpl& context, const TorchExposedIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset = 0) = 0;
+    virtual void executePGet(OpenMM::ContextImpl& context, const TorchExposedIntegrator& integrator, unsigned long int out_forces, int numParticles, int offset = 0) = 0;
     /**
      * Compute the kinetic energy.
      * 
      * @param context    the context in which to execute this kernel
-     * @param integrator the MyIntegrator this kernel is being used for
+     * @param integrator the TorchExposedIntegrator this kernel is being used for
      */
-    virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const MyIntegrator& integrator) = 0;
+    virtual double computeKineticEnergy(OpenMM::ContextImpl& context, const TorchExposedIntegrator& integrator) = 0;
 };
 
-} // namespace TorchIntegratorPlugin
+}
 
-#endif /*TORCHINTEGRATOR_KERNELS_H_*/
+#endif /*TORCHEXPOSEDINTEGRATOR_KERNELS_H_*/
