@@ -75,9 +75,9 @@ void ReferenceIntegrateTorchExposedStepKernel::executePGet(ContextImpl& context,
     double * fptr = reinterpret_cast<double*>(forces_out+(8*3*offset*numParticles));
     vector<Vec3>& ForceData = extractForces(context);
     for (int i = 0; i < numParticles; ++i) {
-        ptr[3*i] = ForceData[i][0];
-        ptr[3*i+1] = ForceData[i][1];
-        ptr[3*i+2] = ForceData[i][2];
+        fptr[3*i] = ForceData[i][0];
+        fptr[3*i+1] = ForceData[i][1];
+        fptr[3*i+2] = ForceData[i][2];
         
     }
 }
