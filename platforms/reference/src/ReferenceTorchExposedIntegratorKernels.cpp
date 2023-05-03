@@ -16,7 +16,7 @@
 #include "openmm/reference/RealVec.h"
 //#include "openmm/reference/ReferencePlatform.h"
 //#include "openmm/reference/SimTKOpenMMUtilities.h"
-#include "torch/torch.h"
+//#include "torch/torch.h"
 
 using namespace TorchExposedIntegratorPlugin;
 using namespace OpenMM;
@@ -63,33 +63,23 @@ void ReferenceIntegrateTorchExposedStepKernel::initialize(const System& system, 
 
 void ReferenceIntegrateTorchExposedStepKernel::executePSet(ContextImpl& context, const TorchExposedIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset) {
     double * ptr = reinterpret_cast<double*>(positions_in+(8*3*offset*numParticles));
-    torch::Tensor input = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     vector<Vec3>& posData = extractPositions(context);
-    torch::Tensor _input = input.to(torch::kFloat64);
-    double* __input = _input.data_ptr<double>();
-	//int numParticles = posData.size();
     for (int i = 0; i < numParticles; ++i) {
-        posData[i][0] = __input[3*i];
-        posData[i][1] = __input[3*i+1];
-        posData[i][2] = __input[3*i+2];
+        posData[i][0] = ptr[3*i];
+        posData[i][1] = ptr[3*i+1];
+        posData[i][2] = ptr[3*i+2];
     }
 }
 
 void ReferenceIntegrateTorchExposedStepKernel::executePGet(ContextImpl& context, const TorchExposedIntegrator& integrator, unsigned long int forces_out, int numParticles, int offset) {
     double * fptr = reinterpret_cast<double*>(forces_out+(8*3*offset*numParticles));
-    //torch::Tensor output = torch::from_blob(fptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     vector<Vec3>& ForceData = extractForces(context);
-    torch::Tensor fdata = torch::from_blob(ForceData.data(), {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64)).clone();
-    //std::memcpy(fdata.data_ptr<double>(), output.data_ptr<double>(), 3*numParticles);
-    //std::memcpy(output.data_ptr<double>(), fdata.data_ptr<double>(), 8*3*numParticles);
-    //torch::Tensor forces_out;
-    //torch::Scalar scale = 1.0/(double) 0x100000000LL;
-    //torch::Tensor forces_out = torch::mul(torch::from_blob(ForceData.data(), {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64)).clone(), scale);
-    //fdata = torch::mul(fdata, scale);
-    //std::memcpy(output.data_ptr<double>(), fdata.data_ptr<double>(), 8*3*numParticles);
-    std::memcpy(fptr, fdata.data_ptr<double>(), 8*3*numParticles);
-    //torch::TensorAccessor<double, 2> f_a = output.accessor<double, 2>();
-    //f_a[0][0]+=5.0;
+    for (int i = 0; i < numParticles; ++i) {
+        ptr[3*i] = ForceData[i][0];
+        ptr[3*i+1] = ForceData[i][1];
+        ptr[3*i+2] = ForceData[i][2];
+        
+    }
 }
 double ReferenceIntegrateTorchExposedStepKernel::computeKineticEnergy(ContextImpl& context, const TorchExposedIntegrator& integrator) {
     return 0.0;    

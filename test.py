@@ -12,7 +12,6 @@ from IPython import embed
 from torchintegratorplugin import MyIntegrator
 from torch.utils.cpp_extension import load
 
-#getpointer = load(name='torch_extension', sources=['torch_extension.cpp'])
 
 class TestMyIntegrator(unittest.TestCase):
     def test_reference(self,):
