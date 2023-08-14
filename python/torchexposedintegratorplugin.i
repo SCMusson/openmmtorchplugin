@@ -1,6 +1,6 @@
 %module torchexposedintegratorplugin
 
-%import(module="simtk.openmm") "swig/OpenMMSwigHeaders.i"
+%import(module="openmm") "swig/OpenMMSwigHeaders.i"
 %include "swig/typemaps.i"
 
 
