@@ -14,9 +14,6 @@
 #include "ReferenceTorchExposedIntegratorKernels.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/reference/RealVec.h"
-//#include "openmm/reference/ReferencePlatform.h"
-//#include "openmm/reference/SimTKOpenMMUtilities.h"
-#include "torch/torch.h"
 
 using namespace TorchExposedIntegratorPlugin;
 using namespace OpenMM;
