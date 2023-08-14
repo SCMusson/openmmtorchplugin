@@ -65,9 +65,9 @@ void ReferenceIntegrateTorchExposedStepKernel::executePSet(ContextImpl& context,
     double * ptr = reinterpret_cast<double*>(positions_in+(8*3*offset*numParticles));
     vector<Vec3>& posData = extractPositions(context);
     for (int i = 0; i < numParticles; ++i) {
-        posData[i][0] = ptr[3*i]
-        posData[i][1] = ptr[3*i+1]
-        posData[i][2] = ptr[3*i+2]
+        posData[i][0] = ptr[3*i];
+        posData[i][1] = ptr[3*i+1];
+        posData[i][2] = ptr[3*i+2];
     }
 }
 
