@@ -26,7 +26,7 @@ extension = Extension(name='_torchexposedintegratorplugin',
                      )
 
 setup(name='torchexposedintegratorplugin',
-      version='1.0',
+      version='1.1.3',
       py_modules=['torchexposedintegratorplugin'],
       ext_modules=[extension],
      )
