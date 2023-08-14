@@ -63,15 +63,11 @@ void ReferenceIntegrateTorchExposedStepKernel::initialize(const System& system, 
 
 void ReferenceIntegrateTorchExposedStepKernel::executePSet(ContextImpl& context, const TorchExposedIntegrator& integrator, unsigned long int positions_in, int numParticles, int offset) {
     double * ptr = reinterpret_cast<double*>(positions_in+(8*3*offset*numParticles));
-    torch::Tensor input = torch::from_blob(ptr, {numParticles*3}, torch::TensorOptions().dtype(torch::kFloat64));
     vector<Vec3>& posData = extractPositions(context);
-    torch::Tensor _input = input.to(torch::kFloat64);
-    double* __input = _input.data_ptr<double>();
-	//int numParticles = posData.size();
     for (int i = 0; i < numParticles; ++i) {
-        posData[i][0] = __input[3*i];
-        posData[i][1] = __input[3*i+1];
-        posData[i][2] = __input[3*i+2];
+        posData[i][0] = ptr[3*i]
+        posData[i][1] = ptr[3*i+1]
+        posData[i][2] = ptr[3*i+2]
     }
 }
 
