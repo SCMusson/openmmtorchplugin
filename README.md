@@ -10,8 +10,23 @@ speed tests have yet to be carried out (and the plugin itself has not been fully
 is hoped that this will enable Openmm to be used as a loss function for a neural network
 predicting protein structure.
 
-Building The Plugin
-===================
+
+Installing The Plugin
+===============================
+
+The plugin is available through conda-forge.
+Use the following:<br />
+`mamba install openmmtorchplugin -c conda-forge` <br />
+or <br />
+`conda install openmmtorchplugin -c conda-forge` <br /> <br />
+This is a depedency for [Molearn](https://github.com/Degiacomi-Lab/molearn) and should have already been installed
+during <br /> `mamba install molearn -c conda-forge`<br /> or: <br /> `conda install molearn -c conda-forge` 
+
+Conda installs can take an extremely long time but will usually eventually work. We recommend using mamba as it is 
+much faster.
+
+Building The Plugin from source
+===============================
 
 This project uses [CMake](http://www.cmake.org) for its build system.  To build it, follow these
 steps:
@@ -24,20 +39,31 @@ level directory of this project as the source directory.
 3. Press "Configure".
 
 4. Set OPENMM_DIR to point to the directory where OpenMM is installed.  This is needed to locate
-the OpenMM header files and libraries.
+the OpenMM header files and libraries. If you have installed OpenMM with conda/mamba in a miniconda3
+environment then the path will want to be something like
+`/<path_to_miniconda3>/miniconda3/envs/<env_name>` <br /><br />
+The following will also print the correct path: <br />
+`python -c "import openmm, os; print(os.path.dirname(openmm.version.openmm_library_path))"`
 
 5. Set CMAKE_INSTALL_PREFIX to the directory where the plugin should be installed.  Usually,
 this will be the same as OPENMM_DIR, so the plugin will be added to your OpenMM installation.
 
-6. PYTORCH_DIR to the directory where Libtorch is installed (Libtorch can be obtained from the [PyTorch website](https://pytorch.org))
+6. PYTORCH_DIR to the location of pytorch installation. This should be in your site packages
+folder. <br />
+You can find the location of site packages using: <br />
+`python -c 'import site; print(site.getsitepackages())'` <br /><br />
+Then simply set PYTORCH_DIR to: <br /> `/path/to/site-packages/torch`
 
 7. If you plan to build the CUDA platform, make sure that CUDA_TOOLKIT_ROOT_DIR is set correctly
-and that TORCHINTEGRATOR_BUILD_CUDA_LIB is selected.
+and that TORCHEXPOSEDINTEGRATOR_BUILD_CUDA_LIB is selected.
 
 8. Press "Configure" again if necessary, then press "Generate".
 
 9. Use the build system you selected to build and install the plugin.  For example, if you
-selected Unix Makefiles, type `make install`.
+selected Unix Makefiles:<br />
+`make`<br />
+`make install`<br />
+`make PythonInstall`
 
 
 Test Cases
@@ -114,7 +140,7 @@ This runs SWIG to generate the C++ and Python files for the extension module
 (ExamplePluginWrapper.cpp and exampleplugin.py), then runs a setup.py script to build and
 install the module.  Once you do that, you can use the plugin from your Python scripts:
 
-    from simtk.openmm import System
+    from openmm import System
     from torchintegratorplugin import MyIntegrator
 
     integrator = MyIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
