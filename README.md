@@ -141,8 +141,8 @@ This runs SWIG to generate the C++ and Python files for the extension module
 install the module.  Once you do that, you can use the plugin from your Python scripts:
 
     from openmm import System
-    from torchintegratorplugin import MyIntegrator
+    from torchexposedintegratorplugin import TorchExposedIntegrator
 
-    integrator = MyIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
+    integrator = TorchExposedIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
 
 
