@@ -2,8 +2,8 @@ OpenMM TorchExposedIntegrator Plugin
 =====================
 
 This project is built from the OpenMM Example plugin and designed for [OpenMM](https://simtk.org/home/openmm)
-It enables you to set the positions of simulation from a torch tensor and retrieve the forces of
-those positions of a simulation into a torch tensor.
+It enables you to inject the atom positions into a simulation object from a torch tensor and retrieve the forces of
+those positions back into a torch tensor.
 The primary benefit of this integrator is that it allows the copying of torch::Tensor (device =
 cuda) directly into the cudaarrays of Openmm thus avoiding GPU -> CPU -> GPU operations. While
 speed tests have yet to be carried out (and the plugin itself has not been fully tested yet) it
@@ -13,12 +13,13 @@ predicting protein structure.
 
 Installing The Plugin
 ===============================
-
+WARNING: version 1.0.0 is fundamentally flawed please ensure 1.1.x or greater is used.
 The plugin is available through conda-forge.
 Use the following:<br />
-`mamba install openmmtorchplugin -c conda-forge` <br />
+`mamba install openmmtorchplugin==1.1.3 -c conda-forge` <br />
 or <br />
-`conda install openmmtorchplugin -c conda-forge` <br /> <br />
+`conda install openmmtorchplugin==1.1.3 -c conda-forge` <br /> <br />
+
 This is a depedency for [Molearn](https://github.com/Degiacomi-Lab/molearn) and should have already been installed
 during <br /> `mamba install molearn -c conda-forge`<br /> or: <br /> `conda install molearn -c conda-forge` 
 
