@@ -10,13 +10,13 @@ INCLUDE_DIRECTORIES("${OPENMM_DIR}/include")
 LINK_DIRECTORIES("${OPENMM_DIR}/lib" "${OPENMM_DIR}/lib/plugins")
 
 # We need to know where LibTorch is installed so we can access the headers and libraries.
-SET(PYTORCH_DIR "" CACHE PATH "Where the PyTorch C++ API is installed")
-SET(CMAKE_PREFIX_PATH "${PYTORCH_DIR}")
-FIND_PACKAGE(Torch REQUIRED)
+#SET(PYTORCH_DIR "" CACHE PATH "Where the PyTorch C++ API is installed")
+#SET(CMAKE_PREFIX_PATH "${PYTORCH_DIR}")
+#FIND_PACKAGE(Torch REQUIRED)
 #LINK_DIRECTORIES("${TENSORFLOW_DIR}/lib")
 
 # Specify the C++ version we are building for.
-SET (CMAKE_CXX_STANDARD 14)
+SET (CMAKE_CXX_STANDARD 11)
 
 # Set flags for linking on mac
 IF(APPLE)
