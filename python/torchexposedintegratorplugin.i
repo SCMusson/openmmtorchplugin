@@ -1,5 +1,5 @@
 %module torchexposedintegratorplugin
-
+%include "factory.i"
 %import(module="openmm") "swig/OpenMMSwigHeaders.i"
 %include "swig/typemaps.i"
 
