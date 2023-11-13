@@ -2,18 +2,14 @@
 # OpenMM TorchExposedIntegratorPlugin
 #----------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
+
+PROJECT(OpenMMTorchExposedIntegratorPlugin
 
 # We need to know where OpenMM is installed so we can access the headers and libraries.
 SET(OPENMM_DIR "/usr/local/openmm" CACHE PATH "Where OpenMM is installed")
 INCLUDE_DIRECTORIES("${OPENMM_DIR}/include")
 LINK_DIRECTORIES("${OPENMM_DIR}/lib" "${OPENMM_DIR}/lib/plugins")
-
-# We need to know where LibTorch is installed so we can access the headers and libraries.
-#SET(PYTORCH_DIR "" CACHE PATH "Where the PyTorch C++ API is installed")
-#SET(CMAKE_PREFIX_PATH "${PYTORCH_DIR}")
-#FIND_PACKAGE(Torch REQUIRED)
-#LINK_DIRECTORIES("${TENSORFLOW_DIR}/lib")
 
 # Specify the C++ version we are building for.
 SET (CMAKE_CXX_STANDARD 11)
@@ -24,8 +20,6 @@ IF(APPLE)
     SET(EXTRA_COMPILE_FLAGS "-msse2 -stdlib=libc++")
 ENDIF(APPLE)
 
-SET(EXTRA_COMPILE_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0")
-
 # Select where to install
 IF(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
     IF(WIN32)
@@ -34,18 +28,6 @@ IF(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
         SET(CMAKE_INSTALL_PREFIX "/usr/local/openmm" CACHE PATH "Where to install the plugin" FORCE)
     ENDIF(WIN32)
 ENDIF(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-
-# Put all the tests and libraries in a single output directory.
-IF(NOT EXECUTABLE_OUTPUT_PATH)
-  SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}
-      CACHE INTERNAL "Single output directory for building all executables.")
-ENDIF()
-IF(NOT LIBRARY_OUTPUT_PATH)
-  SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}
-      CACHE INTERNAL "Single output directory for building all libraries.")
-ENDIF()
-SET(${PROJECT_NAME}_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
-SET(${PROJECT_NAME}_LIBRARY_DIR    ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 
 # The source is organized into subdirectories, but we handle them all from
 # this CMakeLists file rather than letting CMake visit them as SUBDIRS.
@@ -56,7 +38,13 @@ SET(TORCHEXPOSEDINTEGRATOR_LIBRARY_NAME TorchExposedIntegratorPlugin)
 SET(SHARED_TORCHEXPOSEDINTEGRATOR_TARGET ${TORCHEXPOSEDINTEGRATOR_LIBRARY_NAME})
 
 # These are all the places to search for header files which are to be part of the API.
-SET(API_INCLUDE_DIRS "openmmapi/include" "openmmapi/include/internal")
+SET(API_INCLUDE_DIRS)
+FOREACH(dir ${TORCHEXPOSEDINTEGRATOR_PLUGIN_SOURCE_SUBDIRS})
+    SET(API_INCLUDE_DIRS ${API_INCLUDE_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/include/internal)
+ENDFOREACH(dir)
+
 
 # Locate header files.
 SET(API_INCLUDE_FILES)
@@ -86,8 +74,7 @@ SET_TARGET_PROPERTIES(${SHARED_TORCHEXPOSEDINTEGRATOR_TARGET}
     PROPERTIES COMPILE_FLAGS "-DTORCHEXPOSEDINTEGRATOR_BUILDING_SHARED_LIBRARY ${EXTRA_COMPILE_FLAGS}"
     LINK_FLAGS "${EXTRA_COMPILE_FLAGS}")
 TARGET_LINK_LIBRARIES(${SHARED_TORCHEXPOSEDINTEGRATOR_TARGET} OpenMM)
-TARGET_LINK_LIBRARIES(${SHARED_TORCHEXPOSEDINTEGRATOR_TARGET} ${TORCH_LIBRARIES})
-INSTALL_TARGETS(/lib RUNTIME_DIRECTORY /lib ${SHARED_TORCHEXPOSEDINTEGRATOR_TARGET})
+INSTALL(TARGETS ${SHARED_TORCHEXPOSEDINTEGRATOR_TARGET} DESTINATION lib)
 
 # install headers
 FILE(GLOB API_ONLY_INCLUDE_FILES "openmmapi/include/*.h")
@@ -98,41 +85,20 @@ INSTALL (FILES ${API_ONLY_INCLUDE_FILES_INTERNAL} DESTINATION include/internal)
 # Enable testing
 
 ENABLE_TESTING()
-#ADD_SUBDIRECTORY(serialization/tests)
-
-# Copy test files to the build directory.
-
-file(GLOB_RECURSE TEST_FILES RELATIVE "${CMAKE_SOURCE_DIR}"
-    "${CMAKE_SOURCE_DIR}/tests/*.pt"
-)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tests)
-set(COPIED_TEST_FILES)
-foreach(TEST_FILE ${TEST_FILES})
-    set(infile "${CMAKE_SOURCE_DIR}/${TEST_FILE}")
-    set(outfile "${CMAKE_BINARY_DIR}/${TEST_FILE}")
-    add_custom_command(
-        OUTPUT "${outfile}"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${infile}" "${outfile}"
-        DEPENDS "${infile}"
-        COMMENT "CMake-copying file ${infile} to ${outfile}")
-    set(COPIED_TEST_FILES ${COPIED_TEST_FILES} "${outfile}")
-endforeach()
-add_custom_target(CopyTestFiles ALL DEPENDS ${COPIED_TEST_FILES})
 
 # Build the implementations for different platforms
 
 ADD_SUBDIRECTORY(platforms/reference)
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
-#FIND_PACKAGE(OpenCL QUIET)
-#IF(OPENCL_FOUND)
-#	SET(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB OFF CACHE BOOL "Build implementation for OpenCL")
-#ELSE(OPENCL_FOUND)
-#    SET(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB OFF CACHE BOOL "Build implementation for OpenCL")
-#ENDIF(OPENCL_FOUND)
-#IF(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB)
-#    ADD_SUBDIRECTORY(platforms/opencl)
-#ENDIF(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB)
+FIND_PACKAGE(OpenCL QUIET)
+IF(OPENCL_FOUND)
+	SET(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB OFF CACHE BOOL "Build implementation for OpenCL")
+ELSE(OPENCL_FOUND)
+    SET(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB OFF CACHE BOOL "Build implementation for OpenCL")
+ENDIF(OPENCL_FOUND)
+IF(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB)
+    ADD_SUBDIRECTORY(platforms/opencl)
+ENDIF(TORCHEXPOSEDINTEGRATOR_BUILD_OPENCL_LIB)
 
 FIND_PACKAGE(CUDA QUIET)
 IF(CUDA_FOUND)
